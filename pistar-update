@@ -187,7 +187,7 @@ main_function() {
 
     # Ignore update OS because I am a Raspbian.
 
-	conn_check
+	#conn_check
 	echo "Stopping Services..."
 	pistar-services fullstop > /dev/null 2>&1
 	echo -e "${TICK} Done!\n"
