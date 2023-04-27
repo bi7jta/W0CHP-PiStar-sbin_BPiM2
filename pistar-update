@@ -23,9 +23,17 @@ fi
 versionCmd=$( git --work-tree=/usr/local/sbin --git-dir=/usr/local/sbin/.git rev-parse --short=10 HEAD )
 psVer=$( grep Version /etc/pistar-release | awk '{print $3}' )
 W0CHP_DASH_BRANCH="$( git --git-dir=/var/www/dashboard/.git branch | grep '*' | awk {'print $2'} )"
+
+
+#SUPPORTING_FILES_REPO="https://repo.w0chp.net/WPSD-Dev/W0CHP-PiStar-Installer/raw/branch/master/supporting-files"
+#W0CHP_INSTALL_SCRIPT_REPO="https://repo.w0chp.net/WPSD-Dev/W0CHP-PiStar-Installer/raw/branch/master/WPSD-Installer"
+#CONN_CHECK_URI="https://repo.w0chp.net/WPSD-Dev/W0CHP-PiStar-Dash.git"
+
+# for BPi-M2U,BPi-M2z stretch , BPi-M5 bullseye, will merge to W0CHP once all perfect.
 SUPPORTING_FILES_REPO="https://repo.w0chp.net/WPSD-Dev/W0CHP-PiStar-Installer/raw/branch/master/supporting-files"
-W0CHP_INSTALL_SCRIPT_REPO="https://repo.w0chp.net/WPSD-Dev/W0CHP-PiStar-Installer/raw/branch/master/WPSD-Installer"
-CONN_CHECK_URI="https://repo.w0chp.net/WPSD-Dev/W0CHP-PiStar-Dash.git"
+W0CHP_INSTALL_SCRIPT_REPO="404.page"
+CONN_CHECK_URI="https://github.com/bi7jta/W0CHP-PiStar-Dash_BPiM2.git"
+
 CALL=$( grep "Callsign" /etc/pistar-release | awk '{print $3}' )
 osName=$( lsb_release -cs )
 uuidStr=$(egrep 'UUID|ModemType|ModemMode|ControllerType' /etc/pistar-release | awk {'print $3'} | tac | xargs| sed 's/ /_/g')
@@ -177,57 +185,7 @@ main_function() {
     	pkill pistar-hourly.cron > /dev/null 2>&1
     	pkill pistar-daily.cron > /dev/null 2>&1
 
-	if [ -t 1 ] && [[ ${NO_OS} -ne 1 ]]; then
-		# This is running from a terminal, so it should be safe to update the OS
-		echo -e "\nChecking for, and applying any available operating system updates..."
-		# ensure all proper sec/update repos are defined for bullseye
-		if [ "${osName}" = "bullseye" ]; then
-		    if ! grep -q 'bullseye-security' /etc/apt/sources.list ; then
-		        if ! apt-key list | grep -q "Debian Security Archive Automatic Signing Key (11/bullseye)" > /dev/null 2<&1; then
-		            apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 54404762BBB6E853 > /dev/null 2<&1
-		        fi
-		        echo "deb http://security.debian.org/debian-security bullseye-security main contrib non-free" >> /etc/apt/sources.list
-		    fi
-		    if ! grep -q 'bullseye-updates' /etc/apt/sources.list  ; then
-		        if ! apt-key list | grep -q "Debian Archive Automatic Signing Key (11/bullseye)" > /dev/null 2<&1 ; then
-		            apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D386FA1D9 > /dev/null 2<&1
-		        fi
-		        echo "deb http://deb.debian.org/debian bullseye-updates main contrib non-free" >> /etc/apt/sources.list
-		    fi
-		fi
-		apt-get -q=2 update
-		if ! apt-get upgrade --dry-run | grep -qo "0 upgraded" ; then
-		    echo -e "${INFO} Operating system updates available; installing now..."
-		    apt-get upgrade --fix-missing --fix-broken -y
-		    apt-get -q=2 autoremove -y
-		    apt-get -q=2 clean
-		    apt-get -q=2 autoclean
-		else
-		    echo -e "${INFO} No operating system updates required."
-		fi
-		# ensure bullseye has proper php extensions
-		dpkg --configure -a > /dev/null 2>&1
-		if [ "${osName}" = "bullseye" ]; then
-		    if [ ! -f "/usr/share/php7.4-zip/zip/zip.ini" ] ; then
-			echo -e "Installing required 'php-zip' package..."
-		        apt-get -q=2 install -y php-zip > /dev/null 2>&1
-		        apt-get -q=2 clean > /dev/null 2<&1
-		        apt-get -q=2 autoclean > /dev/null 2<&1
-		    fi
-		fi
-		echo -e "${TICK} Done!\n"
-
-		echo "Checking nginx web server configuration"
-		if ! [ $(cat /lib/systemd/system/nginx.service | grep -o "mkdir") ]; then
-			sed -i '\/PIDFile=\/run\/nginx.pid/a ExecStartPre=\/bin\/mkdir -p \/var\/log\/nginx' /lib/systemd/system/nginx.service
-			systemctl daemon-reload
-			systemctl restart nginx.service
-			echo "nginx configuration has been updated by operating system; restarting update..."
-			exec "$0" "$@"
-			exit 1
-		fi
-		echo -e "${TICK} Done!"
-	fi
+    # Ignore update OS because I am a Raspbian.
 
 	conn_check
 	echo "Stopping Services..."
@@ -283,23 +241,12 @@ main_function() {
 	    rm -rf /lib/systemd/system/mobilegps*
 	fi
 	if ! [ -x "$(command -v gpsd)" ]; then
-	    echo "GPSd (required) not installed. Installing now..."
-	    # Install GPSd
-	    apt-get -qq update > /dev/null 2>&1
-	    apt-get -qq install -y libgps-dev gpsd > /dev/null 2>&1
-	    systemctl restart gpsd > /dev/null 2>&1
-	    systemctl daemon-reload > /dev/null 2>&1
-	    echo -e "${TICK} Done!\n"
-        fi
+	    echo "GPSd (required) not installed. ignore it now..."
+    fi
 
 	# check for vnstat
 	if ! [ -x "$(command -v vnstat)" ]; then
-	    echo "vnstat (required) not installed on hotspot. Installing now..."
-	    # Install vnstat
-	    apt-get -qq update > /dev/null 2>&1
-	    apt-get -qq install -y vnstat > /dev/null 2>&1
-	    systemctl restart vnstat.service > /dev/null
-	    echo -e "${TICK} Done!\n"
+	    echo "vnstat (required) not installed on hotspot. ignore it..."
         fi
 	# tmpfs for vnstat
 	if ! grep -q vnstat /etc/fstab ; then
@@ -317,10 +264,7 @@ main_function() {
 	# swap ntpd for systemd-timesyncd
 	if [ ! -f "/lib/systemd/system/systemd-timesyncd.service" ] ; then
 	    echo "Updating time synchronization service..."
-	    apt-get -qq remove -y --purge ntp > /dev/null 2>&1
-	    apt-get -qq autoremove -y > /dev/null 2>&1
-	    apt-get -qq install -y systemd-timesyncd > /dev/null 2>&1
-	    echo -e "${TICK} Done!\n"
+  
 	fi
 
 	# mmdvmhost log backup services
@@ -336,66 +280,10 @@ main_function() {
 	# screens, and it all collides with WPSD and our native Nextion driver
 	# support.  So lets ignore TGIFspots altogether.
 	# [1] <https://github.com/EA7KDO/Scripts>
-	if [ -f '/etc/cron.daily/getstripped' ] || [ -d '/usr/local/etc/Nextion_Support/' ] || [ -d '/Nextion' ] || grep -q 'SendUserDataMask=0b00011110' /etc/mmdvmhost ; then # these are hacks that seem to exist on TGIFspots.
-	    echo "blah" > /dev/null
-	else # yay no tgifspot hacks!
-            if [ ! -f '/lib/systemd/system/nextiondriver.service' ] ; then # lets get a native service placeholder installed at the very least
-	    	curl -Ls -A "${uaStrSF}" $SUPPORTING_FILES_REPO/mmdvmhost.service-W0CHP  -o /lib/systemd/system/mmdvmhost.service
-	    	curl -Ls -A "${uaStrSF}" $SUPPORTING_FILES_REPO/nextiondriver.service-W0CHP  -o /lib/systemd/system/nextiondriver.service
-            	# Enable the NextionDriver service
-            	systemctl daemon-reload > /dev/null 2<&1
-            	systemctl stop nextiondriver.service > /dev/null 2<&1
-            	/usr/bin/killall NextionDriver > /dev/null 2<&1
-            	systemctl enable nextiondriver.service > /dev/null 2<&1
-            fi
-            if [ -f '/lib/systemd/system/nextiondriver.service' ] ; then # for non-Nextion instances, ensure existing service is ours vs. ON7LDS'
-	    	if systemctl status nextiondriver.service | grep masked > /dev/null 2<&1 ; then
-            	    systemctl unmask nextiondriver.service > /dev/null 2<&1
-	    	    systemctl daemon-reload > /dev/null 2<&1
-	    	fi
-	    	if [ "`sed -nr "/^\[General\]/,/^\[/{ :l /^\s*[^#].*/ p; n; /^\[/ q; b l; }" /etc/mmdvmhost | grep "Display" | cut -d= -f 2`" != "Nextion" ]; then
-        	    if grep -qo 'killall' /lib/systemd/system/nextiondriver.service ; then
-		        curl -Ls -A "${uaStrSF}" $SUPPORTING_FILES_REPO/mmdvmhost.service-W0CHP  -o /lib/systemd/system/mmdvmhost.service
-		        curl -Ls -A "${uaStrSF}" $SUPPORTING_FILES_REPO/nextiondriver.service-W0CHP  -o /lib/systemd/system/nextiondriver.service
-            	        systemctl daemon-reload > /dev/null 2<&1
-            	        systemctl stop nextiondriver.service > /dev/null 2<&1
-            	        /usr/bin/killall NextionDriver > /dev/null 2<&1
-		        systemctl enable nextiondriver.service > /dev/null 2<&1
-		    fi
-	    	fi
-            fi
-            # now, disable nextion driver stuff if display != Nextion in mmdvmhost config...
-            if [ "`sed -nr "/^\[General\]/,/^\[/{ :l /^\s*[^#].*/ p; n; /^\[/ q; b l; }" /etc/mmdvmhost | grep "Display" | cut -d= -f 2`" != "Nextion" ]; then
-            	if grep -qo 'Requires=nextiondriver.service' /lib/systemd/system/mmdvmhost.service ; then # if nextion is re'q, get rid of it
-                    sed -i '/Requires=nextiondriver.service/d' /lib/systemd/system/mmdvmhost.service
-                    systemctl daemon-reload > /dev/null 2<&1
-            	fi
-            	if grep -qo 'RequiredBy=mmdvmhost.service' /lib/systemd/system/nextiondriver.service ; then # if mmdvmhost is re'q, get rid of it
-                    sed -i '/RequiredBy=mmdvmhost.service/d' /lib/systemd/system/nextiondriver.service
-                    systemctl daemon-reload > /dev/null 2<&1
-	    	fi
-	    	# stop and disable
-	    	if ! systemctl status nextiondriver.service | grep 'disabled;' > /dev/null 2<&1 ; then
-            	    systemctl stop nextiondriver.service > /dev/null 2<&1
-            	    /usr/bin/killall NextionDriver > /dev/null 2<&1
-            	    systemctl disable nextiondriver.service > /dev/null 2<&1
-            	    systemctl daemon-reload > /dev/null 2<&1
-	    	fi
-            fi
-            # user has Nextion defined in mmdvmhost, so let's natively support it:
-            if [ "`sed -nr "/^\[General\]/,/^\[/{ :l /^\s*[^#].*/ p; n; /^\[/ q; b l; }" /etc/mmdvmhost | grep "Display" | cut -d= -f 2`" = "Nextion" ]; then
-            	if grep -qo 'killall' /lib/systemd/system/nextiondriver.service ; then # our native support has not been installed/config'd, user likely using ON7LDS script - init!
-                    systemctl stop nextiondriver.service > /dev/null 2<&1
-                    /usr/bin/killall NextionDriver > /dev/null 2<&1
-                    curl -Ls -A "${uaStrSF}" $SUPPORTING_FILES_REPO/mmdvmhost.service-W0CHP  -o /lib/systemd/system/mmdvmhost.service
-                    curl -Ls -A "${uaStrSF}" $SUPPORTING_FILES_REPO/nextiondriver.service-W0CHP  -o /lib/systemd/system/nextiondriver.service
-                    systemctl daemon-reload > /dev/null 2<&1
-                    systemctl enable nextiondriver.service > /dev/null 2<&1
-                    systemctl restart nextiondriver.service > /dev/null 2<&1
-                    systemctl restart mmdvmhost.service > /dev/null 2<&1
-            	fi
-            fi
-	fi
+    
+	# Igore NextionDriver update, will do when I make it work in my BPi-M2
+	echo "Igore NextionDriver update, will do when I make it work in my BPi-M2"
+	# .........
 
 	# m17 service installer bugfix:
 	if [ ! -f "/etc/systemd/system/m17gateway.service" ] ; then
