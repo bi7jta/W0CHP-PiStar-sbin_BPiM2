@@ -20,7 +20,7 @@ SLEEP=/bin/sleep
 DNSMASQDAEMON=dnsmasq
 
 # Upadte AP name to M2
-sed -i  "s#ssid=pi-star#ssid=M2z_pi-star#g" /etc/hostapd/hostapd.conf
+sed -i  "s#ssid=pi-star#ssid=M2_pi-star#g" /etc/hostapd/hostapd.conf
 
 # Pre-flight checks...
 test -x ${DAEMON_PATH}${DAEMON} || exit 0
@@ -42,9 +42,9 @@ if [ -d "/sys/class/net/wlan0" ]; then
 fi
 
 # Make sure we have a card that supports AP mode
-if [ `grep -c -E '(ath5k |ath9k |ath9k_htc |b43 |b43legacy |brcmfmac |carl9170 |cw1200 |iwlwifi |libertas_tf |mac80211_hwsim |mwifiex |mwl8k |p54spi |p54usb |rt73usb |rt2500usb |rt2800usb |vt6656 |wil6210 |wl12xx |zd1211rw |dhd |xradio_wlan |8188eu )' /proc/modules` -eq "0" ]; then
-	exit 0
-fi
+#if [ `grep -c -E '(ath5k |ath9k |ath9k_htc |b43 |b43legacy |brcmfmac |carl9170 |cw1200 |iwlwifi |libertas_tf |mac80211_hwsim |mwifiex |mwl8k |p54spi |p54usb |rt73usb |rt2500usb |rt2800usb |vt6656 |wil6210 |wl12xx |zd1211rw |dhd |xradio_wlan |8188eu )' /proc/modules` -eq "0" ]; then
+#	exit 0
+#fi
 
 # Some cards cannot be in AP mode *AND* Managed mode at the same time
 if [ `grep -c -E '(rt2800usb )' /proc/modules` -gt "0" ]; then
@@ -62,14 +62,15 @@ if [ `grep -c -E '(8188eu )' /proc/modules` -gt "0" ]; then
 	fi
 fi
 
+# BPi-M2u, M2z not have dhd mode ,use bcmdhd instead
 # FriendlyArm Nano Pi Neo Air
 if [ `grep -c -E '(dhd )' /proc/modules` -gt "0" ]; then
 	if [ ! -d "/sys/class/net/wlan0_ap" ]; then
 		sed -i '/hwaddress ether b8:27:eb:00:00:01/d' /etc/network/interfaces
 		ifconfig wlan0 down
-		rmmod dhd
-		modprobe dhd op_mode=2
-		ip link set wlan0 name wlan0_ap
+		rmmod bcmdhd
+		modprobe bcmdhd op_mode=2
+ 		#ip link set wlan0 name wlan0_ap
 		${SLEEP} 2
 	fi
 fi
