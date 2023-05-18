@@ -30,9 +30,10 @@ test -r $CONFIG || exit 0
 # if dstarrepeater is configured or running, dont start this daemon!
 ! test -r /etc/dstar-radio.dstarrepeater || exit 0
 
-if [[ $(egrep -h -i "1234567|M1ABC" ${CONFIG} | wc -l) -gt 0 ]]; then
-  exit 0;
-fi
+#Ignore DMRID and callsign condition
+#if [[ $(egrep -h -i "1234567|M1ABC" ${CONFIG} | wc -l) -gt 0 ]]; then
+#  exit 0;
+#fi
 
 # Make sure DMR Networking is on
 if [ $(sed -n '/^\[DMR Network\]/,/^\[/p' /etc/mmdvmhost | grep "^Enable" | awk -F '=' '{print $2}') == 0 ]; then
