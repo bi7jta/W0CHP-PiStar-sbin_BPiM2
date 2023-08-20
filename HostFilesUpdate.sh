@@ -142,22 +142,22 @@ do
 done
 
 # Generate Host Files
-curl --fail -L -o ${APRSHOSTS} -s ${hostFileURL}/APRS_Hosts.txt --user-agent "${uaStr}"
-curl --fail -L -o ${APRSSERVERS} -s ${hostFileURL}/aprs_servers.json --user-agent "${uaStr}"
-curl --fail -L -o ${DCSHOSTS} -s ${hostFileURL}/DCS_Hosts.txt --user-agent "${uaStr}"
-curl --fail -L -o ${DMRHOSTS} -s ${hostFileURL}/DMR_Hosts.txt --user-agent "${uaStr}"
+curl -# -o ${APRSHOSTS} -s ${hostFileURL}/APRS_Hosts.txt --user-agent "${uaStr}"
+curl -# -o ${APRSSERVERS} -s ${hostFileURL}/aprs_servers.json --user-agent "${uaStr}"
+curl -# -o ${DCSHOSTS} -s ${hostFileURL}/DCS_Hosts.txt --user-agent "${uaStr}"
+curl -# -o ${DMRHOSTS} -s ${hostFileURL}/DMR_Hosts.txt --user-agent "${uaStr}"
 if [ -f /etc/hostfiles.nodextra ]; then
   # Move XRFs to DPlus Protocol
-  curl --fail -L -o ${DPlusHOSTS} -s ${hostFileURL}/DPlus_WithXRF_Hosts.txt --user-agent "${uaStr}"
-  curl --fail -L -o ${DExtraHOSTS} -s ${hostFileURL}/DExtra_NoXRF_Hosts.txt --user-agent "${uaStr}"
+  curl -# -o ${DPlusHOSTS} -s ${hostFileURL}/DPlus_WithXRF_Hosts.txt --user-agent "${uaStr}"
+  curl -# -o ${DExtraHOSTS} -s ${hostFileURL}/DExtra_NoXRF_Hosts.txt --user-agent "${uaStr}"
 else
   # Normal Operation
-  curl --fail -L -o ${DPlusHOSTS} -s ${hostFileURL}/DPlus_Hosts.txt --user-agent "${uaStr}"
-  curl --fail -L -o ${DExtraHOSTS} -s ${hostFileURL}/DExtra_Hosts.txt --user-agent "${uaStr}"
+  curl -# -o ${DPlusHOSTS} -s ${hostFileURL}/DPlus_Hosts.txt --user-agent "${uaStr}"
+  curl -# -o ${DExtraHOSTS} -s ${hostFileURL}/DExtra_Hosts.txt --user-agent "${uaStr}"
 fi
 
 # Grab DMR IDs
-curl --fail -L -o /tmp/DMRIds.tmp.bz2 -s ${hostFileURL}/DMRIds.dat.bz2 --user-agent "${uaStr}"
+curl -# -o /tmp/DMRIds.tmp.bz2 -s ${hostFileURL}/DMRIds.dat.bz2 --user-agent "${uaStr}"
 bunzip2 -f /tmp/DMRIds.tmp.bz2
 # filter out IDs less than 7 digits (causing collisions with TGs of < 7 digits in "Target" column"
 cat /tmp/DMRIds.tmp  2>/dev/null | grep -v '^#' | awk '($1 > 999999) && ($1 < 10000000) { print $0 }' | sort -un -k1n -o ${DMRIDFILE}
@@ -169,24 +169,24 @@ then
     cp ${DMRIDFILE}.$(date +%Y%m%d) ${DMRIDFILE}
 fi
 
-curl --fail -L -o ${P25HOSTS} -s ${hostFileURL}/P25_Hosts.txt --user-agent "${uaStr}"
-curl --fail -L -o ${M17HOSTS} -s ${hostFileURL}/M17_Hosts.txt --user-agent "${uaStr}"
-curl --fail -L -o ${YSFHOSTS} -s ${hostFileURL}/YSF_Hosts.txt --user-agent "${uaStr}"
-curl --fail -L -o ${FCSHOSTS} -s ${hostFileURL}/FCS_Hosts.txt --user-agent "${uaStr}"
-curl --fail -L -o ${XLXHOSTS} -s ${hostFileURL}/XLXHosts.txt --user-agent "${uaStr}"
-curl --fail -L -o ${NXDNIDFILE} -s ${hostFileURL}/NXDN.csv --user-agent "${uaStr}"
-curl --fail -L -o ${NXDNHOSTS} -s ${hostFileURL}/NXDN_Hosts.txt --user-agent "${uaStr}"
-curl --fail -L -o ${TGLISTBM} -s ${hostFileURL}/TGList_BM.txt --user-agent "${uaStr}"
-curl --fail -L -o ${TGLISTTGIF} -s ${hostFileURL}/TGList_TGIF.txt --user-agent "${uaStr}"
-curl --fail -L -o ${TGLISTFREESTARIPSC2} -s ${hostFileURL}/TGList_FreeStarIPSC.txt --user-agent "${uaStr}"
-curl --fail -L -o ${TGLISTSYSTEMX} -s ${hostFileURL}/TGList_SystemX.txt --user-agent "${uaStr}"
-curl --fail -L -o ${TGLISTFREEDMR} -s ${hostFileURL}/TGList_FreeDMR.txt --user-agent "${uaStr}"
-curl --fail -L -o ${TGLISTDMRPLUS} -s ${hostFileURL}/TGList_DMRp.txt --user-agent "${uaStr}"
-curl --fail -L -o ${TGLISTP25} -s ${hostFileURL}/TGList_P25.txt --user-agent "${uaStr}"
-curl --fail -L -o ${TGLISTNXDN} -s ${hostFileURL}/TGList_NXDN.txt --user-agent "${uaStr}"
-curl --fail -L -o ${TGLISTYSF} -s ${hostFileURL}/TGList_YSF.txt --user-agent "${uaStr}"
-curl --fail -L -o ${COUNTRIES} -s ${hostFileURL}/country.csv --user-agent "${uaStr}"
-curl --fail -L -o ${BMTGNAMES} -s ${hostFileURL}/BM_TGs.json --user-agent "${uaStr}"
+curl -# -o ${P25HOSTS} -s ${hostFileURL}/P25_Hosts.txt --user-agent "${uaStr}"
+curl -# -o ${M17HOSTS} -s ${hostFileURL}/M17_Hosts.txt --user-agent "${uaStr}"
+curl -# -o ${YSFHOSTS} -s ${hostFileURL}/YSF_Hosts.txt --user-agent "${uaStr}"
+curl -# -o ${FCSHOSTS} -s ${hostFileURL}/FCS_Hosts.txt --user-agent "${uaStr}"
+curl -# -o ${XLXHOSTS} -s ${hostFileURL}/XLXHosts.txt --user-agent "${uaStr}"
+curl -# -o ${NXDNIDFILE} -s ${hostFileURL}/NXDN.csv --user-agent "${uaStr}"
+curl -# -o ${NXDNHOSTS} -s ${hostFileURL}/NXDN_Hosts.txt --user-agent "${uaStr}"
+curl -# -o ${TGLISTBM} -s ${hostFileURL}/TGList_BM.txt --user-agent "${uaStr}"
+curl -# -o ${TGLISTTGIF} -s ${hostFileURL}/TGList_TGIF.txt --user-agent "${uaStr}"
+curl -# -o ${TGLISTFREESTARIPSC2} -s ${hostFileURL}/TGList_FreeStarIPSC.txt --user-agent "${uaStr}"
+curl -# -o ${TGLISTSYSTEMX} -s ${hostFileURL}/TGList_SystemX.txt --user-agent "${uaStr}"
+curl -# -o ${TGLISTFREEDMR} -s ${hostFileURL}/TGList_FreeDMR.txt --user-agent "${uaStr}"
+curl -# -o ${TGLISTDMRPLUS} -s ${hostFileURL}/TGList_DMRp.txt --user-agent "${uaStr}"
+curl -# -o ${TGLISTP25} -s ${hostFileURL}/TGList_P25.txt --user-agent "${uaStr}"
+curl -# -o ${TGLISTNXDN} -s ${hostFileURL}/TGList_NXDN.txt --user-agent "${uaStr}"
+curl -# -o ${TGLISTYSF} -s ${hostFileURL}/TGList_YSF.txt --user-agent "${uaStr}"
+curl -# -o ${COUNTRIES} -s ${hostFileURL}/country.csv --user-agent "${uaStr}"
+curl -# -o ${BMTGNAMES} -s ${hostFileURL}/BM_TGs.json --user-agent "${uaStr}"
 
 # BM TG List for live caller and nextion screens:
 cp ${BMTGNAMES} ${GROUPSTXT}
@@ -246,7 +246,7 @@ if [ -f "/root/XLXHosts.txt" ]; then
 fi
 
 # Nextion and LiveCaller DMR ID DB's
-curl --fail -L -o ${RADIOIDDB}.bz2 -s ${hostFileURL}/user.csv.bz2 --user-agent "${uaStr}"
+curl -# -o ${RADIOIDDB}.bz2 -s ${hostFileURL}/user.csv.bz2 --user-agent "${uaStr}"
 bunzip2 -f ${RADIOIDDB}.bz2
 # sort
 cat /tmp/user.csv /tmp/stripped.csv 2>/dev/null | sort -un -k1n -o ${STRIPPED}
