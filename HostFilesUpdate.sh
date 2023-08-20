@@ -36,8 +36,43 @@ status_code=$(curl -I -m 3 -A " ConnCheck ${uaStr}" --write-out %{http_code} --s
 if [[ $status_code == 20* ]] || [[ $status_code == 30* ]] ; then
     echo "W0CHP Hostfile Update Server connection OK...updating hostfiles."
 else
-    echo "W0CHP Hostfile Update Server connection failed.Ignore it "
-    #exit 1
+    echo "W0CHP Hostfile Update Server connection failed.Change to BI7JTA server  "
+    
+    echo "Update DMRIds and Hosts from BI7JTA server ... "
+	# Get the Pi-Star Version
+	pistarCurVersion=$(awk -F "= " '/Version/ {print $2}' /etc/pistar-release)
+	 
+	DMRIDFILE=/usr/local/etc/DMRIds.dat
+	DMRHOSTS=/usr/local/etc/DMR_Hosts.txt 
+	P25HOSTS=/usr/local/etc/P25Hosts.txt
+	YSFHOSTS=/usr/local/etc/YSFHosts.txt 
+	NXDNHOSTS=/usr/local/etc/NXDNHosts.txt 
+	XLXHOSTS=/usr/local/etc/XLXHosts.txt 
+
+	# 默认情况下，curl是不会显示下载进度的。但是，你可以通过使用“-#”或“--progress-bar”选项来启用进度条 -s：静默不输出任何信息
+
+	#sudo curl -#  -o ${DMRIDFILE}  http://125.91.17.122:8090/dmrids-and-hosts/DMRIds.dat --user-agent "Pi-Star_${pistarCurVersion}"
+	#sudo curl -#  -o ${P25HOSTS}   http://125.91.17.122:8090/dmrids-and-hosts/P25_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	#sudo curl -#  -o ${YSFHOSTS}   http://125.91.17.122:8090/dmrids-and-hosts/YSF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	#sudo curl -#  -o ${DMRHOSTS}   http://125.91.17.122:8090/dmrids-and-hosts/DMR_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+
+	sudo curl -# -o ${DMRIDFILE} https://www.bi7jta.org/files/dmrids-and-hosts/DMRIds.dat --user-agent "Pi-Star_${pistarCurVersion}"
+	sudo curl -# -o ${P25HOSTS}  https://www.bi7jta.org/files/dmrids-and-hosts/P25Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	sudo curl -# -o ${YSFHOSTS}  https://www.bi7jta.org/files/dmrids-and-hosts/YSFHosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	sudo curl -# -o ${DMRHOSTS}  https://www.bi7jta.org/files/dmrids-and-hosts/DMR_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	sudo curl -# -o ${NXDNHOSTS}  https://www.bi7jta.org/files/dmrids-and-hosts/NXDNHosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	sudo curl -# -o ${XLXHOSTS}  https://www.bi7jta.org/files/dmrids-and-hosts/XLXHosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+
+    echo "Update NextionDriver DMRIds from BI7JTA server ... "
+	cd /tmp; sudo rm -f user.*; sudo wget https://www.bi7jta.org/files/dmrids-and-hosts/user.zip
+
+	cd /tmp; 
+	unzip user.zip
+	stat /tmp/user.csv
+	mv /tmp/user.csv /usr/local/etc/stripped.csv
+	stat /usr/local/etc/stripped.csv
+
+    exit 1
 fi
 
 # Files and locations
