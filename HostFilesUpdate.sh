@@ -36,8 +36,8 @@ status_code=$(curl -I -m 3 -A " ConnCheck ${uaStr}" --write-out %{http_code} --s
 if [[ $status_code == 20* ]] || [[ $status_code == 30* ]] ; then
     echo "W0CHP Hostfile Update Server connection OK...updating hostfiles."
 else
-    echo "W0CHP Hostfile Update Server connection failed."
-    exit 1
+    echo "W0CHP Hostfile Update Server connection failed.Ignore it "
+    #exit 1
 fi
 
 # Files and locations
