@@ -1,9 +1,7 @@
 #!/bin/bash
 
-#
 # W0CHP pistar-daily.cron (enhanced)
-#
-
+# Add Allstarlink , DVSwitch, 
 # Make sure we are root
 if [ "$(id -u)" != "0" ]; then
   echo -e "You need to be root to run this command...\n"
@@ -17,28 +15,6 @@ pkill pistar-hourly.cron > /dev/null 2>&1
 # Stop all the services...
 pistar-services fullstop > /dev/null 2>&1
 
-# ensure repos can be updated
-if ! grep -q 'safe' /root/.gitconfig > /dev/null 2<&1 ; then
-    git config --global --add safe.directory /var/www/dashboard > /dev/null 2<&1
-    git config --global --add safe.directory /usr/local/bin > /dev/null 2<&1
-    git config --global --add safe.directory /usr/local/sbin > /dev/null 2<&1
-fi
-
-# migrate config update notice
-if grep -q ConfUpdReqd /etc/mmdvmhost ; then
-    grep ConfUpdReqd /etc/mmdvmhost | sed 's/=/ = /' >> /etc/pistar-release
-    sed -i '/^\[WPSD\]/d' /etc/mmdvmhost
-    sed -i '/^ConfUpdReqd/d' /etc/mmdvmhost
-else
-    if ! grep -q ConfUpdReqd /etc/pistar-release ; then
-        echo "ConfUpdReqd = " >> /etc/pistar-release
-    fi
-fi
-
-W0CHP_INSTALL_SCRIPT_REPO="https://repo.w0chp.net/WPSD-Dev/W0CHP-PiStar-Installer/raw/branch/master/WPSD-Installer"
-SUPPORTING_FILES_REPO="https://repo.w0chp.net/WPSD-Dev/W0CHP-PiStar-Installer/raw/branch/master/supporting-files"
-W0CHP_DASH_BRANCH="$( git --git-dir=/var/www/dashboard/.git branch | grep '*' | awk {'print $2'} )"
-CONN_CHECK_URI="https://repo.w0chp.net/WPSD-Dev/W0CHP-PiStar-Dash.git"
 CALL=$( grep "Callsign" /etc/pistar-release | awk '{print $3}' )
 osName=$( lsb_release -cs )
 psVer=$( grep Version /etc/pistar-release | awk '{print $3}' )
@@ -50,465 +26,50 @@ hwDeetz="${hardwareField} - ${modelName}"
 cronMins=$(shuf -i 0-59 -n 1)
 cronHours=$(shuf -i 1-4 -n1)
 tz=$( date +%Z )
-uaStr="WPSD-Daily-Cron [${cronHours}:${cronMins} ${tz}]) Ver.# ${psVer} ${versionCmd} (${W0CHP_DASH_BRANCH}) Call:${CALL} UUID:${uuidStr} [${hwDeetz}] [${osName}] [${osName}]"
-uaStrSF="WPSD-SuppFiles (Daily-Cron [${cronHours}:${cronMins} ${tz}]) Ver.# ${psVer} ${versionCmd} (${W0CHP_DASH_BRANCH}) Call:${CALL} UUID:${uuidStr} [${hwDeetz}] [${osName}]"
- 
-# connectivity check
-status_code=$(curl -I -m 3 -A "ConnCheck ${uaStr}" --write-out %{http_code} --silent --output /dev/null "$CONN_CHECK_URI")
-if [[ $status_code == 20* ]] || [[ $status_code == 30* ]] ; then
-    echo "repo connection ok"
 
-    # remove rmb conflicts
-    if [[ $(grep -- '-RMB' /etc/pistar-release) ]] ; then
-    	cp -a /var/www/dashboard/config/{config.php,ircddblocal.php,language.php} /root/ # save user config files.
-    	rm -f /etc/pistar-css.ini
-    	cp -a /etc/ip*ables.rules /root/ # save user config files.
-    	/usr/local/sbin/pistar-services fullstop > /dev/null 2<&1 
-    	uaStr="WPSD-Installer & F1RMB Remover"
-
-    	# curl option array
-    	declare -a CURL_OPTIONS=('-Ls' '-A' "${uaStr}")
-    	curl "${CURL_OPTIONS[@]}" ${W0CHP_INSTALL_SCRIPT_REPO} -o /usr/sbin/WPSD-Installer
-    	chmod +x /usr/sbin/WPSD-Installer
-    	curl -Ls https://raw.githubusercontent.com/f1rmb/f1rmb-pistar/master/f1rmb-pistar | env NO_SELF_UPDATE=1 bash -s -- -ra > /dev/null 2<&1
-    	env UPDATE_SELF=0 /usr/sbin/WPSD-Installer -id > /dev/null 2<&1
-    	/usr/local/sbin/pistar-services fullstop > /dev/null 2<&1 
-    	mv /root/{config.php,ircddblocal.php,language.php} /var/www/dashboard/config/ # move back the user config files
-    	mv /root/ip*ables.rules /etc/ # move back the user config files
-    	/usr/local/sbin/pistar-services start > /dev/null 2<&1 
-    	exit 0
-    fi
-
-    # Update sbin
-    env GIT_HTTP_CONNECT_TIMEOUT="10" env GIT_HTTP_USER_AGENT="WPSD-UpdateCheck (Daily-Cron [${cronHours}:${cronMins} ${tz}]) Ver.# ${psVer} ${versionCmd} (${W0CHP_DASH_BRANCH}) Call:${CALL} UUID:${uuidStr} [${hwDeetz}] [${osName}]" git --work-tree=/usr/local/sbin --git-dir=/usr/local/sbin/.git pull origin master
-
-    # Update the Dashboard
-    # W0CHP has more than one branch. So depending on what W0CHP branch the user has installed, check that branch.
-    gitFolder="/var/www/dashboard"
-    gitBranch="$( git --git-dir=${gitFolder}/.git branch | grep '*' | awk {'print $2'} )"
-    cd ${gitFolder}
-    git stash # save user config files: config/config.php config/ircddblocal.php config/language.php
-    env GIT_HTTP_CONNECT_TIMEOUT="10" env GIT_HTTP_USER_AGENT="WPSD-UpdateCheck (Daily-Cron [${cronHours}:${cronMins} ${tz}]) Ver.# ${psVer} ${versionCmd} (${W0CHP_DASH_BRANCH}) Call:${CALL} UUID:${uuidStr} [${hwDeetz}] [${osName}]" git --work-tree=/var/www/dashboard --git-dir=/var/www/dashboard/.git pull origin ${gitBranch}
-    git reset --hard
-    git checkout stash@{0} -- config/config.php config/ircddblocal.php config/language.php # restore user config files from stash
-    git stash clear # housekeeping
-
-    # Host Files Update
-    if ! [ -f /root/M17Hosts.txt ]; then
-    	echo -e "# Format: Reflector Name IP Port\n# Example:\n# M17-000    81.231.241.25    17000\n\n" > /root/M17Hosts.txt
-    fi
-    /usr/local/sbin/HostFilesUpdate.sh > /dev/null 2>&1
-
-    # Get and cache latest W0CHP-PiStar-Dash version from remote Git repo:
-    gitRemoteURL=$(git --work-tree=${gitFolder} --git-dir=${gitFolder}/.git config --get remote.origin.url)
-    gitBranch="$( git --git-dir=${gitFolder}/.git branch | grep '*' | awk {'print $2'} )"
-    gitStatusRemote=$(env GIT_HTTP_CONNECT_TIMEOUT="10" env GIT_HTTP_USER_AGENT="WPSD-UpdateCheck Version Cacher (Daily-Cron [${cronHours}:${cronMins} ${tz}]) Ver.# ${psVer} ${versionCmd} (${W0CHP_DASH_BRANCH}) Call:${CALL} UUID:${uuidStr} [${hwDeetz}]" git ls-remote --heads ${gitRemoteURL} ${gitBranch} | grep ${gitBranch} | awk {'print $1'} | awk '{ print substr($1,1,10) }') # last pipe to awk: converts long hash to 10 chars.
-    echo ${gitStatusRemote} > /etc/.W0CHP-PiStar-Dash.remote_version
-
-    # Update the Binaries
-    GIT_HTTP_CONNECT_TIMEOUT="10" env GIT_HTTP_USER_AGENT="WPSD-UpdateCheck (Daily-Cron [${cronHours}:${cronMins} ${tz}]) Ver.# ${psVer} ${versionCmd} (${W0CHP_DASH_BRANCH}) Call:${CALL} UUID:${uuidStr} [${hwDeetz}] [${osName}]" git --work-tree=/usr/local/bin --git-dir=/usr/local/bin/.git pull origin master
-
-    # update installer
-    curl -Ls -A "${uaStrSF}" ${W0CHP_INSTALL_SCRIPT_REPO} -o /usr/sbin/WPSD-Installer
-    chmod +x /usr/sbin/WPSD-Installer
-
-    # if css does not exist, install default one
-    if [ ! -f "/etc/pistar-css.ini" ] ; then
-	curl -Ls -A "${uaStrSF}" $SUPPORTING_FILES_REPO/pistar-css-W0CHP.ini -o /etc/pistar-css.ini
-    fi
-
-    # mmdvmhost log backup services
-    if [ ! -f "/lib/systemd/system/mmdvm-log-backup.service" ] ; then
-    	curl -Ls -A "${uaStrSF}" $SUPPORTING_FILES_REPO/Build-MMDVM-Log-Systemd-Tasks.sh -o /tmp/Build-MMDVM-Log-Systemd-Tasks.sh
-    	bash /tmp/Build-MMDVM-Log-Systemd-Tasks.sh > /dev/null 2<&1
-    	rm /tmp/Build-MMDVM-Log-Systemd-Tasks.sh
-    fi
-
-    # setup our own native NextionDriver service...
-    # Updated 2/23/2023 - W0CHP:
-    # TGIFspots contain really weird hacks/scripts, etc.[1] for their Nextion
-    # screens, and it all collides with WPSD and our native Nextion driver
-    # support.  So lets ignore TGIFspots altogether.
-    # [1] <https://github.com/EA7KDO/Scripts>
-    if [ -f '/etc/cron.daily/getstripped' ] || [ -d '/usr/local/etc/Nextion_Support/' ] || [ -d '/Nextion' ] || grep -q 'SendUserDataMask=0b00011110' /etc/mmdvmhost ; then # these are hacks that seem to exist on TGIFspots.
-    	echo "blah" > /dev/null
-    else # yay no tgifspot hacks!
-    	if [ ! -f '/lib/systemd/system/nextiondriver.service' ] ; then # lets get a native service placeholder installed at the very least
-    	    curl -Ls -A "${uaStrSF}" $SUPPORTING_FILES_REPO/mmdvmhost.service-W0CHP  -o /lib/systemd/system/mmdvmhost.service
-   	    curl -Ls -A "${uaStrSF}" $SUPPORTING_FILES_REPO/nextiondriver.service-W0CHP  -o /lib/systemd/system/nextiondriver.service
-    	    # Enable the NextionDriver service
-    	    systemctl daemon-reload > /dev/null 2<&1
-    	    systemctl stop nextiondriver.service > /dev/null 2<&1
-    	    /usr/bin/killall NextionDriver > /dev/null 2<&1
-    	    systemctl enable nextiondriver.service > /dev/null 2<&1
-    	fi
-    	if [ -f '/lib/systemd/system/nextiondriver.service' ] ; then # for non-Nextion instances, ensure existing service is ours vs. ON7LDS'
-    	    if systemctl status nextiondriver.service | grep masked > /dev/null 2<&1 ; then
-	    	systemctl unmask nextiondriver.service > /dev/null 2<&1
-	    	systemctl daemon-reload > /dev/null 2<&1
-    	    fi
-	    if [ "`sed -nr "/^\[General\]/,/^\[/{ :l /^\s*[^#].*/ p; n; /^\[/ q; b l; }" /etc/mmdvmhost | grep "Display" | cut -d= -f 2`" != "Nextion" ]; then
-	    	if grep -qo 'killall' /lib/systemd/system/nextiondriver.service ; then
-	    	    curl -Ls -A "${uaStrSF}" $SUPPORTING_FILES_REPO/mmdvmhost.service-W0CHP  -o /lib/systemd/system/mmdvmhost.service
-	    	    curl -Ls -A "${uaStrSF}" $SUPPORTING_FILES_REPO/nextiondriver.service-W0CHP  -o /lib/systemd/system/nextiondriver.service
-            	    systemctl daemon-reload > /dev/null 2<&1
-            	    systemctl stop nextiondriver.service > /dev/null 2<&1
-            	    /usr/bin/killall NextionDriver > /dev/null 2<&1
-	    	    systemctl enable nextiondriver.service > /dev/null 2<&1
-	        fi
-	    fi
-    	fi
-    	# now, disable nextion driver stuff if display != Nextion in mmdvmhost config...
-    	if [ "`sed -nr "/^\[General\]/,/^\[/{ :l /^\s*[^#].*/ p; n; /^\[/ q; b l; }" /etc/mmdvmhost | grep "Display" | cut -d= -f 2`" != "Nextion" ]; then
-    	    if grep -qo 'Requires=nextiondriver.service' /lib/systemd/system/mmdvmhost.service ; then # if nextion is re'q, get rid of it
-            	sed -i '/Requires=nextiondriver.service/d' /lib/systemd/system/mmdvmhost.service
-            	systemctl daemon-reload > /dev/null 2<&1
-    	    fi
-    	    if grep -qo 'RequiredBy=mmdvmhost.service' /lib/systemd/system/nextiondriver.service ; then # if mmdvmhost is re'q, get rid of it
-            	sed -i '/RequiredBy=mmdvmhost.service/d' /lib/systemd/system/nextiondriver.service
-            	systemctl daemon-reload > /dev/null 2<&1
-    	    fi
-    	    # stop and disable
-    	    if ! systemctl status nextiondriver.service | grep 'disabled;' > /dev/null 2<&1 ; then
-	    	systemctl stop nextiondriver.service > /dev/null 2<&1
-	    	/usr/bin/killall NextionDriver > /dev/null 2<&1
-	    	systemctl disable nextiondriver.service > /dev/null 2<&1
-	    	systemctl daemon-reload > /dev/null 2<&1
-     	    fi
-    	fi
-    	# user has Nextion defined in mmdvmhost, so let's natively support it:
-    	if [ "`sed -nr "/^\[General\]/,/^\[/{ :l /^\s*[^#].*/ p; n; /^\[/ q; b l; }" /etc/mmdvmhost | grep "Display" | cut -d= -f 2`" = "Nextion" ]; then
-    	    if grep -qo 'killall' /lib/systemd/system/nextiondriver.service ; then # our native support has not been installed/config'd, user likely using ON7LDS script - init!
-	    	systemctl stop nextiondriver.service > /dev/null 2<&1
-	    	/usr/bin/killall NextionDriver > /dev/null 2<&1
-	    	curl -Ls -A "${uaStrSF}" $SUPPORTING_FILES_REPO/mmdvmhost.service-W0CHP  -o /lib/systemd/system/mmdvmhost.service
-	    	curl -Ls -A "${uaStrSF}" $SUPPORTING_FILES_REPO/nextiondriver.service-W0CHP  -o /lib/systemd/system/nextiondriver.service
-	    	systemctl daemon-reload > /dev/null 2<&1
-	    	systemctl enable nextiondriver.service > /dev/null 2<&1
-	    	systemctl restart nextiondriver.service > /dev/null 2<&1
-	    	systemctl restart mmdvmhost.service > /dev/null 2<&1
-	    fi
-    	fi
-    fi
-else
-    echo "repo connetion failure"
-fi
-
-# bullseye; change weird interface names* back to what most are accustomed to;
-# <https://wiki.debian.org/NetworkInterfaceNames#THE_.22PREDICTABLE_NAMES.22_SCHEME>
-OS_VER=$( cat /etc/debian_version | sed 's/\..*//')
-if [ "${OS_VER}" -gt "10" ] && [[ ! $(grep "net.ifnames" /boot/cmdline.txt) ]] ; then
-    sed -i 's/$/ net.ifnames=0 biosdevname=0/' /boot/cmdline.txt
-fi
-
-# ensure pistar-remote config has key-value pairs for new funcs (12/2/22)
-if ! grep -q 'hostfiles=8999995' /etc/pistar-remote ; then
-    sed -i "/^# TG commands.*/a hostfiles=8999995" /etc/pistar-remote
-fi
-if ! grep -q 'reconnect=8999994' /etc/pistar-remote ; then
-    sed -i "/^# TG commands.*/a reconnect=8999994" /etc/pistar-remote
-fi
-
-# maint. tasks
-/usr/local/sbin/wpsd-backend-maint > /dev/null 2>&1
-
-# Add DGIdGateway timer to the APRS timer (dependency).
-if ! grep -q 'Before=mmdvmhost.timer' /lib/systemd/system/aprsgateway.service ; then
-    sed -i '/After=/a Before=mmdvmhost.timer ircddbgateway.timer ysfgateway.timer nxdngateway.timer dgidgateway.timer' /lib/systemd/system/aprsgateway.service
-fi
-
-# add CallLookupProvider to /etc/pistar-release if not there...
-if ! grep -q 'CallLookupProvider =' /etc/pistar-release ; then
-   sed -i '/ConfUpdReqd/a CallLookupProvider = QRZ' /etc/pistar-release
-fi
-
-# Generate /etc/motd
-bash /usr/local/sbin/pistar-motdgen
-
-# cleanup legacy naming convention
-if grep -q 'modemcache' /etc/rc.local ; then
-    sed -i 's/modemcache/hwcache/g' /etc/rc.local
-    sed -i 's/# cache modem info/# cache hw info/g' /etc/rc.local 
-fi
-# add hw cache to rc.local
-if ! grep -q 'hwcache' /etc/rc.local ; then
-    sed -i '/^\/usr\/local\/sbin\/pistar-motdgen/a \\n\n# cache hw info\n\/usr\/local\/sbin\/pistar-hwcache' /etc/rc.local 
-    /usr/local/sbin/pistar-hwcache
-else
-    /usr/local/sbin/pistar-hwcache
-fi
+# Host Files Update
+/usr/local/sbin/HostFilesUpdate.sh 
 
 # Purge the logs older than 2 days
 rm -f $(find /var/log/pi-star/*.log -type f -mtime +1 -print)
+rm -f $(find /var/log/mmdvm/*.log -type f -mtime +1 -print) #MMDVM_Bridge.log
 rm -f $(find /var/log/ -type f -mtime +0 -print | grep .gz)
 
 # Shrink nginx error log to stop it getting out of hand
 echo "$(tail -500 /var/log/nginx/error.log)" > /var/log/nginx/error.log
+echo "$(tail -500 /var/log/nginx/access.log)" > /var/log/nginx/access.log
+sudo sh -c 'echo "" > /var/log/nginx/access.log'
 
-# Pre-Fix some configs in MMDVMHost for update purposes.
-mmdvmHostVer=`MMDVMHost -v | awk '{print $3}' | cut -c 1-8`
-needsUpdate=`grep -c Gwy /etc/mmdvmhost`
-if [ ${mmdvmHostVer} \> 20171031 ] && [ ${needsUpdate} \> 0 ]; then
-        # Config needs to be updated, add in the changes here
-        sed -i "/GwyAddress=/c\\GatewayAddress=127.0.0.1" /etc/mmdvmhost
-        sed -i "/GwyPort=/c\\GatewayPort=4200" /etc/mmdvmhost
-fi
+# Shrink /var/log/Analog_Bridge.log log to stop it getting out of hand
+echo "$(tail -500 /var/log/Analog_Bridge.log)" > /var/log/Analog_Bridge.log
 
-# Fix up new P25Gateway Config Hostfile setup
-if [[ $(/usr/local/bin/P25Gateway --version | awk '{print $3}' | cut -c -8) -gt "20180108" ]]; then
-	sed -i 's/Hosts=\/usr\/local\/etc\/P25Hosts.txt/HostsFile1=\/usr\/local\/etc\/P25Hosts.txt\nHostsFile2=\/usr\/local\/etc\/P25HostsLocal.txt/g' /etc/p25gateway
-fi
-if [ ! -f /root/P25Hosts.txt ]; then
-	touch /root/P25Hosts.txt
-fi
+# Shrink /var/log/asterisk/messages log to stop it getting out of hand
+echo "$(tail -500 /var/log/asterisk/messages)" > /var/log/asterisk/messages
 
-# fix timeouts in YSFgateway and P25Gateways (hopes to prevent "Not Linked" dash status when they are indeed linked
-ysfGwToLen=$( grep InactivityTimeout /etc/ysfgateway | awk -F "=" '{print $2}' | wc -m > /dev/null )
-if [[ "${ysfGwToLen}"  -lt "4" ]] ; then
-    sed -i "/InactivityTimeout/c\\InactivityTimeout=1440" /etc/ysfgateway
-fi
-p25GwToLen=$( grep InactivityTimeout /etc/p25gateway | awk -F "=" '{print $2}' | wc -m > /dev/null )
-if [[ "${p25GwToLen}"  -lt "4" ]] ; then
-    sed -i "/InactivityTimeout/c\\InactivityTimeout=1440" /etc/p25gateway
-fi
+# Shrink /var/log/syslog log to stop it getting out of hand
+echo "$(tail -500 /var/log/syslog)" > /var/log/syslog
 
-# m17 service installer bugfix:
-if [ ! -f "/etc/systemd/system/m17gateway.service" ] ; then
-    /usr/local/sbin/m17gateway.service install > /dev/null 2<&1
-    systemctl daemon-reload > /dev/null 2<&1
-fi
+# Shrink /var/log/monit.log log to stop it getting out of hand
+echo "$(tail -500 /var/log/monit.log)" > /var/log/monit.log
 
-# ensure all proper sec/update repos are defined for bullseye
-if [ "${osName}" = "bullseye" ]; then
-    if ! grep -q 'bullseye-security' /etc/apt/sources.list ; then
-	if ! apt-key list | grep -q "Debian Security Archive Automatic Signing Key (11/bullseye)" > /dev/null 2<&1; then
-	    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 54404762BBB6E853 > /dev/null 2<&1
-	fi
-	echo "deb http://security.debian.org/debian-security bullseye-security main contrib non-free" >> /etc/apt/sources.list
-    fi
-    if ! grep -q 'bullseye-updates' /etc/apt/sources.list  ; then
-	if ! apt-key list | grep -q "Debian Archive Automatic Signing Key (11/bullseye)" > /dev/null 2<&1 ; then
-	    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0E98404D386FA1D9 > /dev/null 2<&1
-	fi
-	echo "deb http://deb.debian.org/debian bullseye-updates main contrib non-free" >> /etc/apt/sources.list
-    fi
-fi
+# Shrink /var/log/netcheck log to stop it getting out of hand
+echo "$(tail -500 /var/log/netcheck)" > /var/log/netcheck
 
-# ensure bullseye has proper php extensions and use ff-only for newer git strategy
-dpkg --configure -a > /dev/null 2>&1
-if [ "${osName}" = "bullseye" ]; then
-    git config --global pull.ff only
-    if [ ! -f "/usr/share/php7.4-zip/zip/zip.ini" ] ; then
-	apt-get update > /dev/null
-	apt-get install -y php-zip > /dev/null 2>&1
-	apt-get clean > /dev/null 2<&1
-	apt-get autoclean > /dev/null 2<&1
-    fi
-fi
+# Shrink /var/log/php7.3-fpm.log log to stop it getting out of hand
+echo "$(tail -500 /var/log/php7.3-fpm.log)" > /var/log/php7.3-fpm.log
 
-# If we are ready to use the new DMRGateway
-if [[ $(/usr/local/bin/DMRGateway --version | awk '{print $3}' | cut -c -8) -gt "20170924" ]] && [[ $(grep -c "\[DMR Network 3\]" /etc/dmrgateway) -eq "1" ]] && [[ ! -f /usr/local/etc/DMR_Audio/no_NO.indx ]]; then
-	curl --fail -o /usr/local/etc/DMR_Audio/de_DE.ambe -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/de_DE.ambe
-	curl --fail -o /usr/local/etc/DMR_Audio/de_DE.indx -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/de_DE.indx
-	curl --fail -o /usr/local/etc/DMR_Audio/dk_DK.ambe -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/dk_DK.ambe
-	curl --fail -o /usr/local/etc/DMR_Audio/dk_DK.indx -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/dk_DK.indx
-	curl --fail -o /usr/local/etc/DMR_Audio/en_GB.ambe -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/en_GB.ambe
-	curl --fail -o /usr/local/etc/DMR_Audio/en_GB.indx -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/en_GB.indx
-	curl --fail -o /usr/local/etc/DMR_Audio/en_US.ambe -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/en_US.ambe
-	curl --fail -o /usr/local/etc/DMR_Audio/en_US.indx -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/en_US.indx
-	curl --fail -o /usr/local/etc/DMR_Audio/es_ES.ambe -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/es_ES.ambe
-	curl --fail -o /usr/local/etc/DMR_Audio/es_ES.indx -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/es_ES.indx
-	curl --fail -o /usr/local/etc/DMR_Audio/fr_FR.ambe -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/fr_FR.ambe
-	curl --fail -o /usr/local/etc/DMR_Audio/fr_FR.indx -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/fr_FR.indx
-	curl --fail -o /usr/local/etc/DMR_Audio/it_IT.ambe -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/it_IT.ambe
-	curl --fail -o /usr/local/etc/DMR_Audio/it_IT.indx -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/it_IT.indx
-	curl --fail -o /usr/local/etc/DMR_Audio/no_NO.ambe -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/no_NO.ambe
-	curl --fail -o /usr/local/etc/DMR_Audio/no_NO.indx -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/no_NO.indx
-	curl --fail -o /usr/local/etc/DMR_Audio/pl_PL.ambe -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/pl_PL.ambe
-	curl --fail -o /usr/local/etc/DMR_Audio/pl_PL.indx -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/pl_PL.indx
-	curl --fail -o /usr/local/etc/DMR_Audio/se_SE.ambe -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/se_SE.ambe
-	curl --fail -o /usr/local/etc/DMR_Audio/se_SE.indx -s https://raw.githubusercontent.com/g4klx/DMRGateway/master/Audio/se_SE.indx	
-fi
-
-if [[ $(grep Version /etc/pistar-release | awk '{print $3}' | cut -c 1) -eq 4 ]]; then
-        if [[ $(cat /etc/ircddbgateway | grep -o "xlx" | wc -l) -eq 0 ]]; then
-                echo "xlxEnabled=0" >> /etc/ircddbgateway
-                echo "xlxOverrideLocal=0" >> /etc/ircddbgateway
-                echo "xlxHostsFileUrl=" >> /etc/ircddbgateway
-        fi
-
-        if [[ $(cat /etc/ircddbgateway | grep -o "aprsPassword" | wc -l) -eq 0 ]]; then
-                echo "aprsPassword=00000" >> /etc/ircddbgateway
-        fi
-
-        if [[ $(cat /etc/ircddbgateway | grep -o "mobileGPS" | wc -l) -eq 0 ]]; then
-                echo "mobileGPSEnabled=0" >> /etc/ircddbgateway
-                echo "mobileGPSAddress=127.0.0.1" >> /etc/ircddbgateway
-                echo "mobileGPSPort=7834" >> /etc/ircddbgateway
-        fi
-
-        if [[ $(cat /etc/dstarrepeater | grep -o "mmdvmRXInvert" | wc -l) -eq 0 ]]; then
-                echo "mmdvmRXInvert=0" >> /etc/dstarrepeater
-                echo "mmdvmTXInvert=0" >> /etc/dstarrepeater
-                echo "mmdvmPTTInvert=0" >> /etc/dstarrepeater
-                echo "mmdvmTXDelay=50" >> /etc/dstarrepeater
-                echo "mmdvmRXLevel=100" >> /etc/dstarrepeater
-                echo "mmdvmTXLevel=100" >> /etc/dstarrepeater
-        fi
-fi
-
-# Download M17 Audio files if missing
-if [[ ! -f /usr/local/etc/M17_Audio/se_SE.indx ]]; then
-    mkdir -p /usr/local/etc/M17_Audio/
-    curl --fail -o /usr/local/etc/M17_Audio/de_DE.m17 -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/de_DE.m17
-    curl --fail -o /usr/local/etc/M17_Audio/de_DE.indx -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/de_DE.indx
-    curl --fail -o /usr/local/etc/M17_Audio/dk_DK.m17 -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/dk_DK.m17
-    curl --fail -o /usr/local/etc/M17_Audio/dk_DK.indx -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/dk_DK.indx
-    curl --fail -o /usr/local/etc/M17_Audio/en_GB.m17 -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/en_GB.m17
-    curl --fail -o /usr/local/etc/M17_Audio/en_GB.indx -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/en_GB.indx
-    curl --fail -o /usr/local/etc/M17_Audio/en_US.m17 -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/en_US.m17
-    curl --fail -o /usr/local/etc/M17_Audio/en_US.indx -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/en_US.indx
-    curl --fail -o /usr/local/etc/M17_Audio/es_ES.m17 -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/es_ES.m17
-    curl --fail -o /usr/local/etc/M17_Audio/es_ES.indx -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/es_ES.indx
-    curl --fail -o /usr/local/etc/M17_Audio/fr_FR.m17 -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/fr_FR.m17
-    curl --fail -o /usr/local/etc/M17_Audio/fr_FR.indx -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/fr_FR.indx
-    curl --fail -o /usr/local/etc/M17_Audio/it_IT.m17 -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/it_IT.m17
-    curl --fail -o /usr/local/etc/M17_Audio/it_IT.indx -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/it_IT.indx
-    curl --fail -o /usr/local/etc/M17_Audio/pl_PL.m17 -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/pl_PL.m17
-    curl --fail -o /usr/local/etc/M17_Audio/pl_PL.indx -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/pl_PL.indx
-    curl --fail -o /usr/local/etc/M17_Audio/se_SE.m17 -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/se_SE.m17
-    curl --fail -o /usr/local/etc/M17_Audio/se_SE.indx -s https://raw.githubusercontent.com/g4klx/M17Gateway/master/Audio/se_SE.indx    
-fi
-
-if [[ $(grep Version /etc/pistar-release | awk '{print $3}' | cut -c 1) -eq 4 ]]; then
-        if [[ $(cat /etc/ircddbgateway | grep -o "xlx" | wc -l) -eq 0 ]]; then
-                echo "xlxEnabled=0" >> /etc/ircddbgateway
-                echo "xlxOverrideLocal=0" >> /etc/ircddbgateway
-                echo "xlxHostsFileUrl=" >> /etc/ircddbgateway
-        fi
-
-        if [[ $(cat /etc/ircddbgateway | grep -o "gpsd" | wc -l) -eq 0 ]]; then
-                echo "gpsdSEnabled=0" >> /etc/ircddbgateway
-                echo "gpsdAddress=127.0.0.1" >> /etc/ircddbgateway
-                echo "gpsdPort=2947" >> /etc/ircddbgateway
-        fi
-
-        if [[ $(cat /etc/dstarrepeater | grep -o "mmdvmRXInvert" | wc -l) -eq 0 ]]; then
-                echo "mmdvmRXInvert=0" >> /etc/dstarrepeater
-                echo "mmdvmTXInvert=0" >> /etc/dstarrepeater
-                echo "mmdvmPTTInvert=0" >> /etc/dstarrepeater
-                echo "mmdvmTXDelay=50" >> /etc/dstarrepeater
-                echo "mmdvmRXLevel=100" >> /etc/dstarrepeater
-                echo "mmdvmTXLevel=100" >> /etc/dstarrepeater
-        fi
-fi
-
-    if [ -f /usr/local/bin/platformDetect.sh ]; then # remove platformDetect.sh since we have a custom version in /usr/local/sbin
-        rm -f /usr/local/bin/platformDetect.sh
-    fi
-
-    # Add pistar-service bash completion
-    DEST="/usr/share/bash-completion/completions/pistar-services"
-    if [ ! -f $DEST ] ; then
-            echo "#!/bin/bash" > $DEST
-            echo "" >> $DEST
-            echo "_pistar_services()" >> $DEST
-            echo "{" >> $DEST
-            echo "    local cur prev words cword" >> $DEST
-            echo "    _init_completion -n = || return" >> $DEST
-            echo "" >> $DEST
-            echo "    _expand || return 0" >> $DEST
-            echo "" >> $DEST
-            echo "    COMPREPLY=( \$( compgen -W 'start stop restart fullstop status' -- \"\$cur\" ) )" >> $DEST
-            echo "" >> $DEST
-            echo "} &&" >> $DEST
-            echo "complete -F _pistar_services pistar-services" >> $DEST
-            echo "" >> $DEST
-            chown root:root $DEST
-            chmod 0644 $DEST
-    fi
-
-# Fix nginx unit file
-if ! [ $(cat /lib/systemd/system/nginx.service | grep -o "mkdir") ]; then
-  sed -i '\/PIDFile=\/run\/nginx.pid/a ExecStartPre=\/bin\/mkdir -p \/var\/log\/nginx' /lib/systemd/system/nginx.service
-	systemctl daemon-reload
-	systemctl restart nginx.service
-fi
-# re-sec. nginx after interrupted installation
-sed -i '/satisfy any/d' /etc/nginx/sites-enabled/pi-star
-sed -i '/allow 127.0.0.1/d' /etc/nginx/sites-enabled/pi-star
-sed -i '/deny all/d' /etc/nginx/sites-enabled/pi-star
-systemctl restart nginx > /dev/null 2<&1
-
-if ! grep -q TIME_FORMAT /var/www/dashboard/config/config.php ; then # insert req'd constant if not found. WIll be stashed on next update :-)
-    sed -i "/^date_default_timezone_set.*/i define('TIME_FORMAT', '24');" /var/www/dashboard/config/config.php 
-fi
-
-if ! grep -q AUTO_UPDATE_CHECK /var/www/dashboard/config/config.php ; then # insert req'd constant if not found. WIll be stashed on next update :-)
-    sed -i "/^date_default_timezone_set.*/i define('AUTO_UPDATE_CHECK', 'true');" /var/www/dashboard/config/config.php
-fi
+# Shrink /var/log/lighttpd/error.log log to stop it getting out of hand
+echo "$(tail -500 /var/log/lighttpd/error.log)" > /var/log/lighttpd/error.log
 
 # log file perms
 chown -R mmdvm:mmdvm /var/log/pi-star > /dev/null 2>&1
 chmod 775 /var/log/pi-star > /dev/null 2>&1
 
-# Check for gpsd
-systemctl disable mobilegps.timer > /dev/null 2<&1
-systemctl disable mobilegps.service > /dev/null 2<&1
-if compgen -G "/lib/systemd/system/mobilegps*" > /dev/null; then
-    rm -rf /lib/systemd/system/mobilegps*
-fi
-if ! [ -x "$(command -v gpsd)" ]; then
-    echo "GPSd (required) not installed on hotspot. Installing now..."
-    # Install GPSd
-    apt-get -qq update > /dev/null 2>&1
-    apt-get -qq install -y libgps-dev gpsd > /dev/null 2>&1
-    systemctl restart gpsd > /dev/null 2>&1
-    systemctl daemon-reload > /dev/null 2>&1
-    echo -e "Done\n"
-fi
-
-# check for vnstat
-if ! [ -x "$(command -v vnstat)" ]; then
-    echo "vnstat (required) not installed on hotspot. Installing now..."
-    # Install vnstat
-    apt-get -qq update > /dev/null 2>&1
-    apt-get -qq install -y vnstat > /dev/null 2>&1
-    echo -e "Done!\n"
-fi
+ 
 # tmpfs for vnstat
-if ! grep -q vnstat /etc/fstab ; then
-    systemctl stop vnstat.service > /dev/null
-    rm -rf /var/lib/vnstat > /dev/null
-    mkdir -p /var/lib/vnstat > /dev/null
-    chown -R vnstat:vnstat /var/lib/vnstat > /dev/null
-    echo "tmpfs                   /var/lib/vnstat         tmpfs   nodev,noatime,nosuid,mode=0755,size=64m         0       0"  >> /etc/fstab
-    mount /var/lib/vnstat > /dev/null
-    chown -R vnstat:vnstat /var/lib/vnstat > /dev/null
-fi
-    systemctl restart vnstat.service > /dev/null
-
-# swap ntpd for systemd-timesyncd
-if [ ! -f "/lib/systemd/system/systemd-timesyncd.service" ] ; then
-    echo "Updating time synchronization service..."
-    apt-get -qq remove -y --purge ntp > /dev/null 2>&1
-    apt-get -qq autoremove -y > /dev/null 2>&1
-    apt-get -qq install -y systemd-timesyncd > /dev/null 2>&1
-    echo -e "Done!\n"
-fi
 
 # age mmdvmhost log backups:
 /usr/local/sbin/pistar-mmdvm-log-backup-age > /dev/null
-
-# check if user already has firewall disabled, and if so, ensure it's kept that way.
-if ! grep -q LOGNDROP /etc/iptables.rules ; then
-    /usr/local/sbin/pistar-system-manager -dfw > /dev/null 2>&1
-else
-    /usr/local/sbin/pistar-system-manager -efw > /dev/null 2>&1
-fi
-
-# run any slipstream tasks
-bash /usr/local/sbin/slipstream-tasks.sh > /dev/null 2>&1
 
 # Randomize the time for the daily cron jobs
 sed -i "/cron.daily/c ${cronMins} ${cronHours}	* * *	root	cd / && run-parts --report /etc/cron.daily" /etc/crontab
@@ -516,5 +77,7 @@ sed -i "/cron.daily/c ${cronMins} ${cronHours}	* * *	root	cd / && run-parts --re
 # Start all the services...
 #systemctl daemon-reload &> /dev/null # Reload systemd to account for service changes
 pistar-services start > /dev/null 2>&1
+
+echo "Done"
 
 exit 0
