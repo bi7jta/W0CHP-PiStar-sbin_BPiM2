@@ -421,6 +421,7 @@ main_function() {
     echo "Disable Nginx access.log ..."
     sudo sh -c 'echo "" > /var/log/nginx/access.log' 
     sudo sed -i  "/access_log \/var\/log\/nginx\/access.log;/d" /etc/nginx/nginx.conf
+    sudo sed -i '/error_log\ \/var\/log\/nginx\/error.log/ i\access_log off;' /etc/nginx/nginx.conf
     sudo nginx -s reload
     
     echo "Disable BPiM2 HDMI sleep ..."
