@@ -417,6 +417,15 @@ main_function() {
 	chown -R mmdvm:mmdvm /var/log/pi-star > /dev/null 2>&1
 	chmod 775 /var/log/pi-star > /dev/null 2>&1
 
+    echo "Run patch scripts for BPiM2 ..."
+    echo "Disable Nginx access.log ..."
+    sudo sh -c 'echo "" > /var/log/nginx/access.log' 
+    sudo sed -i  "/access_log \/var\/log\/nginx\/access.log;/d" /etc/nginx/nginx.conf
+    sudo nginx -s reload
+    
+    echo "Disable BPiM2 HDMI sleep ..."
+    sudo sed -i  "s#\#xserver-command=X#xserver-command=X\ -s\ 0\ -dpms#g" /etc/lightdm/lightdm.conf
+
 	# run any slipstream tasks
 	bash /usr/local/sbin/slipstream-tasks.sh > /dev/null 2>&1
 
