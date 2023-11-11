@@ -36,9 +36,8 @@ status_code=$(curl -I -m 3 -A " ConnCheck ${uaStr}" --write-out %{http_code} --s
 if [[ $status_code == 20* ]] || [[ $status_code == 30* ]] ; then
     echo "W0CHP Hostfile Update Server connection OK...updating hostfiles."
 else
-    echo "W0CHP Hostfile Update Server connection failed.Change to BI7JTA server  "
+    echo "W0CHP Hostfile Update Server connection failed.Change to official pistar.uk and readioid.net ...  "
     
-    echo "Update DMRIds and Hosts from BI7JTA server ... "
 	# Get the Pi-Star Version
 	pistarCurVersion=$(awk -F "= " '/Version/ {print $2}' /etc/pistar-release)
 	 
