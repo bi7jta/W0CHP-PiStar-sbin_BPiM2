@@ -61,6 +61,22 @@ echo "$(tail -500 /var/log/php7.3-fpm.log)" > /var/log/php7.3-fpm.log
 # Shrink /var/log/lighttpd/error.log log to stop it getting out of hand
 echo "$(tail -500 /var/log/lighttpd/error.log)" > /var/log/lighttpd/error.log
 
+echo "Shrink /var/log/mmdvm/MMDVM_Bridge-xxx.log log to stop it getting out of hand"
+MMDVM_BridgeLogFile=/var/log/mmdvm/MMDVM_Bridge-`date "+%Y-%m-%d"`.log
+if [ ! -f ${MMDVM_BridgeLogFile} ]; then   
+    MMDVM_BridgeLogFile=/var/log/mmdvm/MMDVM_Bridge-`date -d'-1 day' "+%Y-%m-%d"`.log    
+fi
+
+echo "Log file: ${MMDVM_BridgeLogFile}"
+echo "Just keep one days logs"
+sudo find /var/log/mmdvm/ ! -wholename ${MMDVM_BridgeLogFile} -type f -exec rm -f {} +
+
+if [ -f ${MMDVM_BridgeLogFile} ]; then   
+    stat  ${MMDVM_BridgeLogFile}
+    sudo sh -c "tail -500 ${MMDVM_BridgeLogFile} > ${MMDVM_BridgeLogFile}"
+    stat  ${MMDVM_BridgeLogFile}
+fi
+
 # log file perms
 chown -R mmdvm:mmdvm /var/log/pi-star > /dev/null 2>&1
 chmod 775 /var/log/pi-star > /dev/null 2>&1

@@ -70,6 +70,26 @@ journalctl --vacuum-size=5M
 chown -R mmdvm:mmdvm /var/log/pi-star
 chmod 775 /var/log/pi-star
 
+
+echo "Shrink /var/log/mmdvm/MMDVM_Bridge-xxx.log log to stop it getting out of hand"
+MMDVM_BridgeLogFile=/var/log/mmdvm/MMDVM_Bridge-`date "+%Y-%m-%d"`.log
+if [ ! -f ${MMDVM_BridgeLogFile} ]; then   
+    MMDVM_BridgeLogFile=/var/log/mmdvm/MMDVM_Bridge-`date -d'-1 day' "+%Y-%m-%d"`.log    
+fi
+
+echo "Log file: ${MMDVM_BridgeLogFile}"
+echo "Just keep one days logs"
+sudo find /var/log/mmdvm/ ! -wholename ${MMDVM_BridgeLogFile} -type f -exec rm -f {} +
+
+if [ -f ${MMDVM_BridgeLogFile} ]; then   
+    stat  ${MMDVM_BridgeLogFile}
+    sudo sh -c "tail -500 ${MMDVM_BridgeLogFile} > ${MMDVM_BridgeLogFile}"
+    stat  ${MMDVM_BridgeLogFile}
+fi
+
+# Shrink /var/log/Analog_Bridge.log log to stop it getting out of hand
+echo "$(tail -500 /var/log/Analog_Bridge.log)" > /var/log/Analog_Bridge.log
+
 # Keep the Callsign/Name Lookup Temp files in check...helps with page/name lookup perf. (W0CHP - 12/2021)
 if compgen -G "/tmp/Callsign_Name.txt*" > /dev/null; then
     if [[ $( wc -l /tmp/Callsign_Name.txt.TMP ) > "50" ]]; then
@@ -89,6 +109,8 @@ bash /usr/local/sbin/pistar-motdgen
 
 # run any slipstream tasks
 bash /usr/local/sbin/slipstream-tasks.sh > /dev/null 2>&1
+
+
 
 /bin/sync
 /bin/sync
