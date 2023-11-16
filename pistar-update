@@ -417,55 +417,9 @@ main_function() {
 	chown -R mmdvm:mmdvm /var/log/pi-star > /dev/null 2>&1
 	chmod 775 /var/log/pi-star > /dev/null 2>&1
 
-    echo "Run patch scripts for BPiM2 ..."
-    echo "Disable Nginx access.log ..."
-    sudo sh -c 'echo "" > /var/log/nginx/access.log' 
-    sudo sed -i  "/access_log \/var\/log\/nginx\/access.log;/d" /etc/nginx/nginx.conf
-    sudo sed -i '/error_log\ \/var\/log\/nginx\/error.log/ i\access_log off;' /etc/nginx/nginx.conf
-    sudo nginx -s reload
-    
-    echo "Disable BPiM2 HDMI sleep ..."
-    sudo sed -i  "s#\#xserver-command=X#xserver-command=X\ -s\ 0\ -dpms#g" /etc/lightdm/lightdm.conf
-
-	echo "fix DVSwitch log dir not create /var/log/mmdvm"
-	if [ -f /lib/systemd/system/mmdvm_bridge.service ]; then 
-		sudo sed -i  "/ExecStartPre/d" /lib/systemd/system/mmdvm_bridge.service
-		sudo sed -i '/ExecStart=/ i\ExecStartPre=mkdir -p /var/log/mmdvm' /lib/systemd/system/mmdvm_bridge.service
-		cat /lib/systemd/system/mmdvm_bridge.service
-		sudo systemctl daemon-reload
-		sudo systemctl restart mmdvm_bridge.service
-		sudo systemctl status mmdvm_bridge.service
-	fi
-
-	echo "fix DVSwitch log dir not create /var/log/dvswitch"
-	if [ -f /lib/systemd/system/analog_bridge.service ]; then 
-		sudo sed -i  "/ExecStartPre/d" /lib/systemd/system/analog_bridge.service
-		sudo sed -i '/ExecStart=/ i\ExecStartPre=mkdir -p /var/log/dvswitch' /lib/systemd/system/analog_bridge.service
-		cat /lib/systemd/system/analog_bridge.service
-		sudo systemctl daemon-reload
-		sudo systemctl restart analog_bridge.service
-		sudo systemctl status analog_bridge.service
-	fi
-    
-    echo "Add the follow to daily, hourly ..."
-	echo "Shrink /var/log/mmdvm/MMDVM_Bridge-xxx.log log to stop it getting out of hand"
-	MMDVM_BridgeLogFile=/var/log/mmdvm/MMDVM_Bridge-`date "+%Y-%m-%d"`.log
-	if [ ! -f ${MMDVM_BridgeLogFile} ]; then   
-	    MMDVM_BridgeLogFile=/var/log/mmdvm/MMDVM_Bridge-`date -d'-1 day' "+%Y-%m-%d"`.log    
-	fi
-
-	echo "Log file: ${MMDVM_BridgeLogFile}"
-	echo "Just keep one days logs"
-	sudo find /var/log/mmdvm/ ! -wholename ${MMDVM_BridgeLogFile} -type f -exec rm -f {} +
-
-	if [ -f ${MMDVM_BridgeLogFile} ]; then   
-		stat  ${MMDVM_BridgeLogFile}
-		sudo sh -c "tail -500 ${MMDVM_BridgeLogFile} > ${MMDVM_BridgeLogFile}"
-		stat  ${MMDVM_BridgeLogFile}
-	fi
-
-	# Shrink /var/log/Analog_Bridge.log log to stop it getting out of hand
-	echo "$(tail -500 /var/log/Analog_Bridge.log)" > /var/log/Analog_Bridge.log
+    echo "Call script /usr/local/sbin/pistar-update_RunExtPatch"
+    chmod +x /usr/local/sbin/pistar-update_RunExtPatch
+    /usr/local/sbin/pistar-update_RunExtPatch 
 
 	# run any slipstream tasks
 	bash /usr/local/sbin/slipstream-tasks.sh > /dev/null 2>&1
@@ -481,7 +435,7 @@ main_function() {
 	/bin/sync
 	/bin/sync
 	/bin/sync
-	systemctl start cron.service > /dev/null 2<&1
+	systemctl restart cron.service > /dev/null 2<&1
 	echo -e "${TICK} Update Process Finished!"
 	if [ ! -t 1 ]; then # only output if not called from tty
 		echo -e "\n<b><a style='color:white;text-decoration:underline;'' href='/config/changelog.php'>See the extended ChangeLog of the last 20 changes...</a></b>\n"

@@ -1,0 +1,92 @@
+#!/bin/bash
+#
+###############################################################################
+#                                                                             #
+#                        Pi-Star Auto Update Tool                             #
+#                                                                             #
+#              Design and Development by Andy Taylor (MW0MWZ)                 #
+#                            Enhanced by W0CHP                                #
+#                            Ext CUSTOMIZED by BI7JTA                         #
+###############################################################################
+#
+if [ "$(id -u)" != "0" ]; then
+  echo -e "You need to be root to run this command...\n"
+  exit 1
+fi
+
+exec 200>/var/lock/pistar-update_RunExtPatch.lock || exit 1
+if ! flock -n 200 ; then
+  echo -e "Another instance [pistar-update_RunExtPatch.lock] is already running...\n"
+  exit 1
+fi
+
+	main_function() {
+	    echo "Run patch scripts for BPiM2 ..."
+	    echo "Disable Nginx access.log ..."
+	    sudo sh -c 'echo "" > /var/log/nginx/access.log' 
+	    sudo sed -i  "/access_log \/var\/log\/nginx\/access.log;/d" /etc/nginx/nginx.conf
+	    sudo sed -i '/error_log\ \/var\/log\/nginx\/error.log/ i\access_log off;' /etc/nginx/nginx.conf
+	    sudo nginx -s reload
+	    
+	    echo "Disable BPiM2 HDMI sleep ..."
+	    sudo sed -i  "s#\#xserver-command=X#xserver-command=X\ -s\ 0\ -dpms#g" /etc/lightdm/lightdm.conf
+
+		echo "fix DVSwitch log dir not create /var/log/mmdvm"
+		if [ -e /lib/systemd/system/mmdvm_bridge.service ]; then 
+			sudo sed -i  "/ExecStartPre/d" /lib/systemd/system/mmdvm_bridge.service
+			sudo sed -i '/ExecStart=/ i\ExecStartPre=mkdir -p /var/log/mmdvm' /lib/systemd/system/mmdvm_bridge.service
+			cat /lib/systemd/system/mmdvm_bridge.service
+			sudo systemctl daemon-reload
+			sudo systemctl restart mmdvm_bridge.service
+			sudo systemctl status mmdvm_bridge.service
+		fi
+
+		echo "fix DVSwitch log dir not create /var/log/dvswitch"
+		if [ -e /lib/systemd/system/analog_bridge.service ]; then 
+			sudo sed -i  "/ExecStartPre/d" /lib/systemd/system/analog_bridge.service
+			sudo sed -i '/ExecStart=/ i\ExecStartPre=mkdir -p /var/log/dvswitch' /lib/systemd/system/analog_bridge.service
+			cat /lib/systemd/system/analog_bridge.service
+			sudo systemctl daemon-reload
+			sudo systemctl restart analog_bridge.service
+			sudo systemctl status analog_bridge.service
+		fi
+
+		echo "fix disable D-Star YSF P25 NXDN in /opt/MMDVM_Bridge/MMDVM_Bridge.ini, otherwise will cause the MMDVM_Bridge.service start error"
+		if [ -e /opt/MMDVM_Bridge/MMDVM_Bridge.ini ]; then 
+			sed -i '/\[D-Star\]/{N;s/Enable=1/Enable=0/}' /opt/MMDVM_Bridge/MMDVM_Bridge.ini;
+			sed -i '/\[System\ Fusion\]/{N;s/Enable=1/Enable=0/}' /opt/MMDVM_Bridge/MMDVM_Bridge.ini;
+			sed -i '/\[P25\]/{N;s/Enable=1/Enable=0/}' /opt/MMDVM_Bridge/MMDVM_Bridge.ini;
+			sed -i '/\[NXDN\]/{N;s/Enable=1/Enable=0/}' /opt/MMDVM_Bridge/MMDVM_Bridge.ini;
+			cat /opt/MMDVM_Bridge/MMDVM_Bridge.ini
+	    fi
+
+	    echo "Add the follow to daily, hourly ..."
+		echo "Shrink /var/log/mmdvm/MMDVM_Bridge-xxx.log log to stop it getting out of hand"
+		MMDVM_BridgeLogFile=/var/log/mmdvm/MMDVM_Bridge-`date "+%Y-%m-%d"`.log
+		if [ ! -f ${MMDVM_BridgeLogFile} ]; then   
+		    MMDVM_BridgeLogFile=/var/log/mmdvm/MMDVM_Bridge-`date -d'-1 day' "+%Y-%m-%d"`.log    
+		fi
+
+		echo "Log file: ${MMDVM_BridgeLogFile}"
+		echo "Just keep one days logs"
+		sudo find /var/log/mmdvm/ ! -wholename ${MMDVM_BridgeLogFile} -type f -exec rm -f {} +
+
+		if [ -f ${MMDVM_BridgeLogFile} ]; then   
+			stat  ${MMDVM_BridgeLogFile}
+			sudo sh -c "tail -500 ${MMDVM_BridgeLogFile} > ${MMDVM_BridgeLogFile}"
+			stat  ${MMDVM_BridgeLogFile}
+		fi
+
+		# Shrink /var/log/Analog_Bridge.log log to stop it getting out of hand
+		echo "$(tail -500 /var/log/Analog_Bridge.log)" > /var/log/Analog_Bridge.log
+	}
+
+	if [ -t 1 ]; then
+ 		# run via terminal, only output to screen
+ 		main_function
+	else
+ 		# if not run via terminal, log everything into a log file
+ 		main_function >> /var/log/pi-star/pi-star_update.log 2>&1
+	fi
+
+exit 0
