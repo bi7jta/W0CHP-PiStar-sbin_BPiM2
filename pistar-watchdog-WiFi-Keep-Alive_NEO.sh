@@ -13,7 +13,7 @@ mkdir -p /var/log/pi-star/
 while true
 do
     CURTIME=`date "+%Y-%m-%d %H:%M:%S"`
-    echo "$CURTIME: call WiFi auto Down watchdog, loop after 60s " >> /var/log/pi-star/pistar-watchdog-WiFi-Keep-Alive_NEO.log
+    echo "$CURTIME: call WiFi auto Down watchdog, loop after 60s, clear the previous loop logs " > /var/log/pi-star/pistar-watchdog-WiFi-Keep-Alive_NEO.log
 
     
     if [ -d "/sys/class/net/wlan0" ]; then	   
