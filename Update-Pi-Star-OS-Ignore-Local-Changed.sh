@@ -30,6 +30,7 @@ git_update() {
 	dash_branch="$( git --git-dir=${gitFolder}/.git branch | grep '*' | awk {'print $2'} )"
 
   #Git-忽略冲突，强制更新代码并覆盖本地代码
+  git --work-tree=${gitFolder} --git-dir=${gitFolder}/.git reset --hard && git --work-tree=${gitFolder} --git-dir=${gitFolder}/.git clean -f #使本地完全回退到上次 commit
   git --work-tree=${gitFolder} --git-dir=${gitFolder}/.git fetch --all
   # Reset local modified,
   git --work-tree=${gitFolder} --git-dir=${gitFolder}/.git reset --hard origin/master
