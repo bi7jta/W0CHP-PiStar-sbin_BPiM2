@@ -19,30 +19,23 @@ cat /etc/apt/sources.list.d/raspi.list
 
 echo '更新更新服务器地址为国内, 务必增加sudo';
 # TODO 需要处理异常
-# BPi-M2专用
-        
+
+# 首先处理最原始的库为github的，只针对树莓派4桌面版，其它的不处理，处理完后，与W0CHP库没有关系了
+sudo sed -i  "s#https://repo.w0chp.net/WPSD-Dev/W0CHP-PiStar-bin.git#https://github.com/bi7jta/BI7JTA-PiStar-bin_RPi4B.git#g" /usr/local/bin/.git/config
+sudo sed -i  "s#https://gitee.com/BI7JTA/BI7JTA-PiStar-bin_RPi4B.git#https://github.com/bi7jta/BI7JTA-PiStar-bin_RPi4B.git#g" /usr/local/bin/.git/config
+
+# 这里是处理BPiM2的 # BPi-M2专用   
 sudo sed -i  "s#https://gitee.com/BI7JTA/W0CHP-PiStar-bin_BPiM2.git#https://github.com/bi7jta/W0CHP-PiStar-bin_BPiM2.git#g" /usr/local/bin/.git/config
-
-#W0CHP官方库专用
-sudo sed -i  "s#https://gitee.com/BI7JTA/W0CHP-PiStar-bin.git#https://repo.w0chp.net/Chipster/W0CHP-PiStar-bin.git#g" /usr/local/bin/.git/config
-
-#Pi-Star4.x专用
-sudo sed -i "s#https://gitee.com/BI7JTA/Pi-Star_v4_Binaries_Bin.git#https://github.com/AndyTaylorTweet/Pi-Star_v4_Binaries_Bin.git#g" /usr/local/bin/.git/config
-
 echo 'bin源：';
 cat /usr/local/bin/.git/config;
 
+sudo sed -i  "s#https://repo.w0chp.net/WPSD-Dev/W0CHP-PiStar-sbin.git#https://github.com/bi7jta/W0CHP-PiStar-sbin_BPiM2.git#g" /usr/local/sbin/.git/config
 sudo sed -i  "s#https://gitee.com/BI7JTA/W0CHP-PiStar-sbin_BPiM2.git#https://github.com/bi7jta/W0CHP-PiStar-sbin_BPiM2.git#g" /usr/local/sbin/.git/config
-sudo sed -i  "s#https://gitee.com/BI7JTA/W0CHP-PiStar-sbin.git#https://repo.w0chp.net/Chipster/W0CHP-PiStar-sbin.git#g" /usr/local/sbin/.git/config
-sudo sed -i  "s#https://gitee.com/BI7JTA/Pi-Star_Binaries_sbin.git#https://github.com/AndyTaylorTweet/Pi-Star_Binaries_sbin.git#g" /usr/local/sbin/.git/config
 echo 'sbin源：'
 cat /usr/local/sbin/.git/config;
 
-
+sudo sed -i  "s#https://repo.w0chp.net/WPSD-Dev/W0CHP-PiStar-Dash.git#https://github.com/bi7jta/W0CHP-PiStar-Dash_BPiM2.git#g" /var/www/dashboard/.git/config
 sudo sed -i  "s#https://gitee.com/BI7JTA/W0CHP-PiStar-Dash_BPiM2.git#https://github.com/bi7jta/W0CHP-PiStar-Dash_BPiM2.git#g" /var/www/dashboard/.git/config
-sudo sed -i  "s#https://gitee.com/BI7JTA/W0CHP-PiStar-Dash.git#https://repo.w0chp.net/Chipster/W0CHP-PiStar-Dash.git#g" /var/www/dashboard/.git/config
-sudo sed -i  "s#https://gitee.com/BI7JTA/Pi-Star_DV_Dash.git#https://github.com/AndyTaylorTweet/Pi-Star_DV_Dash.git#g" /var/www/dashboard/.git/config
-
 echo 'dashboard源：'
 cat /var/www/dashboard/.git/config;
 

@@ -29,7 +29,8 @@ git_update() {
 	# get proper W0CHP dash branch user is running...
 	dash_branch="$( git --git-dir=${gitFolder}/.git branch | grep '*' | awk {'print $2'} )"
 
-  # git --work-tree=${gitFolder} --git-dir=${gitFolder}/.git pull -q origin master  
+  #Git-忽略冲突，强制更新代码并覆盖本地代码
+  git --work-tree=${gitFolder} --git-dir=${gitFolder}/.git fetch --all
   # Reset local modified,
   git --work-tree=${gitFolder} --git-dir=${gitFolder}/.git reset --hard origin/master
   # Pull new updated,

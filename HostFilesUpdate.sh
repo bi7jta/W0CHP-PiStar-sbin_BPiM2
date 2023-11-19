@@ -55,16 +55,29 @@ else
 	#sudo curl -#  -o ${YSFHOSTS}   http://125.91.17.122:8090/dmrids-and-hosts/YSF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	#sudo curl -#  -o ${DMRHOSTS}   http://125.91.17.122:8090/dmrids-and-hosts/DMR_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 
-	sudo curl -# -o ${DMRIDFILE} http://www.pistar.uk/downloads/DMRIds.dat --user-agent "Pi-Star_${pistarCurVersion}"
-	sudo curl -# -o ${P25HOSTS}  http://www.pistar.uk/downloads/P25_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
-	sudo curl -# -o ${YSFHOSTS}  http://www.pistar.uk/downloads/YSF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
-	sudo curl -# -o ${DMRHOSTS}  http://www.pistar.uk/downloads/DMR_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
-	sudo curl -# -o ${NXDNHOSTS}  http://www.pistar.uk/downloads/NXDN_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
-	sudo curl -# -o ${XLXHOSTS}  http://www.pistar.uk/downloads/XLXHosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+    HostURL="http://www.pistar.uk/downloads"
+    NextionHostURL="https://radioid.net/static"
+
+   file="/usr/local/sbin/.git/config"
+   if [ -f "$file" ] && grep -q "gitee.com" "$file"; then
+		HostURL="https://www.bi7jta.cn/files/dmrids-and-hosts"
+		NextionHostURL=${HostURL}
+	    echo "Now in Chinse Repositories [gitee.com], HostURL change to ${HostURL}, NextionHostURL ${NextionHostURL} "
+	else 
+	    echo "Now in Github Repositories, HostURL is ${HostURL} ,NextionHostURL ${NextionHostURL} "
+	fi
+
+
+	sudo curl -# -o ${DMRIDFILE} ${HostURL}/DMRIds.dat --user-agent "Pi-Star_${pistarCurVersion}"
+	sudo curl -# -o ${P25HOSTS}  ${HostURL}/P25_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	sudo curl -# -o ${YSFHOSTS}  ${HostURL}/YSF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	sudo curl -# -o ${DMRHOSTS}  ${HostURL}/DMR_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	sudo curl -# -o ${NXDNHOSTS}  ${HostURL}/NXDN_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	sudo curl -# -o ${XLXHOSTS}  ${HostURL}/XLXHosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 
     # "Update NextionDriver DMRIds from radioid.net/static/user.csv ... " 
 	cd /tmp; sudo rm -f user.*;  
-	sudo curl -# -o /tmp/user.csv  https://radioid.net/static/user.csv --user-agent "Pi-Star_${pistarCurVersion}"
+	sudo curl -# -o /tmp/user.csv  ${NextionHostURL}/user.csv --user-agent "Pi-Star_${pistarCurVersion}"
 	mv /tmp/user.csv /usr/local/etc/stripped.csv
 	stat /usr/local/etc/stripped.csv
 
