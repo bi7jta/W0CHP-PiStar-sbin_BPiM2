@@ -63,16 +63,19 @@ else
 		HostURL="https://www.bi7jta.cn/files/dmrids-and-hosts"
 		NextionHostURL=${HostURL}
 	    echo "Now in Chinse Repositories [gitee.com], HostURL change to ${HostURL}, NextionHostURL ${NextionHostURL} "
+        #Not have blank from Agent,
+	    sudo curl -# -o ${P25HOSTS}  ${HostURL}/P25Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	    sudo curl -# -o ${YSFHOSTS}  ${HostURL}/YSFHosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	    sudo curl -# -o ${NXDNHOSTS}  ${HostURL}/NXDNHosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	else 
 	    echo "Now in Github Repositories, HostURL is ${HostURL} ,NextionHostURL ${NextionHostURL} "
-	fi
-
-
+	    #Have blank from pistar.uk,
+	    sudo curl -# -o ${P25HOSTS}  ${HostURL}/P25_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	    sudo curl -# -o ${YSFHOSTS}  ${HostURL}/YSF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	    sudo curl -# -o ${NXDNHOSTS}  ${HostURL}/NXDN_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	fi 
 	sudo curl -# -o ${DMRIDFILE} ${HostURL}/DMRIds.dat --user-agent "Pi-Star_${pistarCurVersion}"
-	sudo curl -# -o ${P25HOSTS}  ${HostURL}/P25_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
-	sudo curl -# -o ${YSFHOSTS}  ${HostURL}/YSF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	sudo curl -# -o ${DMRHOSTS}  ${HostURL}/DMR_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
-	sudo curl -# -o ${NXDNHOSTS}  ${HostURL}/NXDN_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	sudo curl -# -o ${XLXHOSTS}  ${HostURL}/XLXHosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 
     # "Update NextionDriver DMRIds from radioid.net/static/user.csv ... " 
@@ -243,6 +246,11 @@ fi
 # Add custom YSF Hosts
 if [ -f "/root/YSFHosts.txt" ]; then
 	cat /root/YSFHosts.txt >> ${YSFHOSTS}
+fi
+
+# Add custom FCS Hosts
+if [ -f "/root/FCSHosts.txt" ]; then
+	cat /root/FCSHosts.txt >> ${YSFHOSTS}
 fi
 
 # Fix DMRGateway issues with parens
