@@ -94,8 +94,8 @@ main_function() {
  		main_function
 	else
  		# if not run via terminal, log everything into a log file
- 		echo "Execute /usr/local/sbin/Update-Pi-Star-OS-Ignore-Local-Changed.sh" >> /var/log/pi-star/pi-star_update.log 2>&1
- 		main_function >> /var/log/pi-star/pi-star_update.log 2>&1
+ 		# echo "Execute /usr/local/sbin/Update-Pi-Star-OS-Ignore-Local-Changed.sh" >> /var/log/pi-star/pi-star_update.log 2>&1
+ 		main_function #>> /var/log/pi-star/pi-star_update.log 2>&1
 	fi
  
 
