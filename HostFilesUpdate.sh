@@ -47,6 +47,7 @@ else
 	YSFHOSTS=/usr/local/etc/YSFHosts.txt 
 	NXDNHOSTS=/usr/local/etc/NXDNHosts.txt 
 	XLXHOSTS=/usr/local/etc/XLXHosts.txt 
+	M17HOSTS=/usr/local/etc/M17Hosts.txt
 
 	# 默认情况下，curl是不会显示下载进度的。但是，你可以通过使用“-#”或“--progress-bar”选项来启用进度条 -s：静默不输出任何信息
 
@@ -67,22 +68,93 @@ else
 	    sudo curl -# -o ${P25HOSTS}  ${HostURL}/P25Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	    sudo curl -# -o ${YSFHOSTS}  ${HostURL}/YSFHosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	    sudo curl -# -o ${NXDNHOSTS}  ${HostURL}/NXDNHosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	    sudo curl -# -o ${M17HOSTS}  ${HostURL}/M17Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	else 
 	    echo "Now in Github Repositories, HostURL is ${HostURL} ,NextionHostURL ${NextionHostURL} "
 	    #Have blank from pistar.uk,
 	    sudo curl -# -o ${P25HOSTS}  ${HostURL}/P25_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	    sudo curl -# -o ${YSFHOSTS}  ${HostURL}/YSF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	    sudo curl -# -o ${NXDNHOSTS}  ${HostURL}/NXDN_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	    sudo curl -# -o ${M17HOSTS}  ${HostURL}/M17_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	fi 
-	sudo curl -# -o ${DMRIDFILE} ${HostURL}/DMRIds.dat --user-agent "Pi-Star_${pistarCurVersion}"
+	
 	sudo curl -# -o ${DMRHOSTS}  ${HostURL}/DMR_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	sudo curl -# -o ${XLXHOSTS}  ${HostURL}/XLXHosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+    
+    #Update DMRids
+    if [ -n "$1" ]; then 
+    	if [ "$1" == "HostOnly" ]; then
+    		echo "Upate NOT including DMRids, Nextion DMRIds ..."
+        fi
+    else
+    	echo "Upate All including DMRids, Nextion DMRIds ..."
+	    sudo curl -# -o ${DMRIDFILE} ${HostURL}/DMRIds.dat --user-agent "Pi-Star_${pistarCurVersion}"
+	    echo "Update NextionDriver DMRIds from radioid.net/static/user.csv ... " 
+		cd /tmp; sudo rm -f user.*;  
+		sudo curl -# -o /tmp/user.csv  ${NextionHostURL}/user.csv --user-agent "Pi-Star_${pistarCurVersion}"
+		mv /tmp/user.csv /usr/local/etc/stripped.csv
+		stat /usr/local/etc/stripped.csv
+    fi
 
-    # "Update NextionDriver DMRIds from radioid.net/static/user.csv ... " 
-	cd /tmp; sudo rm -f user.*;  
-	sudo curl -# -o /tmp/user.csv  ${NextionHostURL}/user.csv --user-agent "Pi-Star_${pistarCurVersion}"
-	mv /tmp/user.csv /usr/local/etc/stripped.csv
-	stat /usr/local/etc/stripped.csv
+
+    # If there is a DMR override file, add its contents to DMR_Hosts.txt
+	if [ -f "/root/DMR_Hosts.txt" ]; then
+		cat /root/DMR_Hosts.txt >> ${DMRHOSTS}
+	fi
+	echo "===============cat /root/DMR_Hosts.txt==============="
+	cat /root/DMR_Hosts.txt
+
+	# Add custom YSF Hosts
+	if [ -f "/root/YSFHosts.txt" ]; then
+		cat /root/YSFHosts.txt >> ${YSFHOSTS}
+	fi
+	echo "===============cat /root/YSFHosts.txt==============="
+	cat /root/YSFHosts.txt
+
+	# Add custom FCS Hosts
+	if [ -f "/root/FCSHosts.txt" ]; then
+		cat /root/FCSHosts.txt >> ${YSFHOSTS}
+	fi
+	echo "===============cat /root/FCSHosts.txt==============="
+	cat /root/FCSHosts.txt
+
+	# Add custom P25 Hosts
+	if [ -f "/root/P25Hosts.txt" ]; then
+		cat /root/P25Hosts.txt > /usr/local/etc/P25HostsLocal.txt
+	fi
+	echo "===============cat /root/P25Hosts.txt==============="
+	cat /root/P25Hosts.txt
+
+	# Add local override for M17Hosts
+	if [ -f "/root/M17Hosts.txt" ]; then
+		cat /root/M17Hosts.txt >> ${M17HOSTS}
+	fi
+	echo "===============cat /root/M17Hosts.txt==============="
+	cat /root/M17Hosts.txt
+
+	# Fix up new NXDNGateway Config HostFile setup
+	if [ ! -f "/root/NXDNHosts.txt" ]; then
+		touch /root/NXDNHosts.txt
+	fi
+	echo "===============cat /root/NXDNHosts.txt==============="
+	cat /root/NXDNHosts.txt
+
+	if [ ! -f "/usr/local/etc/NXDNHostsLocal.txt" ]; then
+		touch /usr/local/etc/NXDNHostsLocal.txt
+	fi
+
+
+	# Add custom NXDN Hosts
+	if [ -f "/root/NXDNHosts.txt" ]; then
+		cat /root/NXDNHosts.txt > /usr/local/etc/NXDNHostsLocal.txt
+	fi
+
+	# XLX override handling
+	if [ -f "/root/XLXHosts.txt" ]; then
+		cat /root/XLXHosts.txt >> /usr/local/etc/XLXHosts.txt
+	fi
+	echo "===============cat /root/XLXHosts.txt==============="
+	cat /root/XLXHosts.txt
 
     exit 0
 fi
