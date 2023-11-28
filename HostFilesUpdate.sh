@@ -32,12 +32,12 @@ hwDeetz="${hardwareField} - ${modelName}"
 uaStr="WPSD-HostFileUpdater Ver.# ${psVer} ${dashVer} (${gitBranch}) Call:${CALL} UUID:${uuidStr} [${hwDeetz}] [${osName}]"
 
 # connectivity check
-status_code=$(curl -I -m 3 -A " ConnCheck ${uaStr}" --write-out %{http_code} --silent --output /dev/null ${hostFileURL})
+#status_code=$(curl -I -m 3 -A " ConnCheck ${uaStr}" --write-out %{http_code} --silent --output /dev/null ${hostFileURL})
+status_code=404 
 if [[ $status_code == 20* ]] || [[ $status_code == 30* ]] ; then
     echo "W0CHP Hostfile Update Server connection OK...updating hostfiles."
 else
     echo "W0CHP Hostfile Update Server connection failed.Change to official pistar.uk and readioid.net ...  "
-    
 	# Get the Pi-Star Version
 	pistarCurVersion=$(awk -F "= " '/Version/ {print $2}' /etc/pistar-release)
 	 
