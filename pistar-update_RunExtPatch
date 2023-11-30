@@ -99,6 +99,15 @@ fi
 			cp /var/www/dashboard/patch/tinyfilemanager-config.php /etc/tinyfilemanager-config.php
 		fi
 
+        #FIX p25gateway no data 
+        FIND_STR="\[Network\]"
+        if [ `grep -c "$FIND_STR" /etc/p25gateway ` -ne '0' ];then
+		  echo "Find $FIND_STR in p25gateway, ignore it."
+		else
+		  echo "${FIND_STR} NOT FOUND, fix it"
+		  cp /usr/local/sbin/patch-scripts/p25gateway.txt /etc/p25gateway
+		fi
+		cat /etc/p25gateway
 	}
 
 	if [ -t 1 ]; then
