@@ -107,8 +107,8 @@ else
 	# #Generate Host Files
 	uaStr="WPSD-HostFileUpdater Ver.# 4.1.6 283205d9d2 (master) Call:BG6THE UUID:00000000130d8a21_MMDVM_stm32usb_Simplex [Raspberry Pi 3 Model B Plus Rev 1.3 - ARMv7 Processor rev 4 (v7l)] [buster]"
 
-	curl -# -o ${APRSHOSTS}  ${hostFileURL}/APRS_Hosts.txt --user-agent "${uaStr}"
-	curl -# -o ${APRSSERVERS}  ${hostFileURL}/aprs_servers.json --user-agent "${uaStr}"
+	curl -# -o ${APRSHOSTS}  ${W0CHP_hostFileURL}/APRS_Hosts.txt --user-agent "${uaStr}"
+	curl -# -o ${APRSSERVERS}  ${W0CHP_hostFileURL}/aprs_servers.json --user-agent "${uaStr}"
 	curl -# -o ${TGLISTBM}  ${W0CHP_hostFileURL}/TGList_BM.txt --user-agent "${uaStr}"
 	curl -# -o ${TGLISTTGIF}  ${W0CHP_hostFileURL}/TGList_TGIF.txt --user-agent "${uaStr}"
 	curl -# -o ${TGLISTFREESTARIPSC2}  ${W0CHP_hostFileURL}/TGList_FreeStarIPSC.txt --user-agent "${uaStr}"
