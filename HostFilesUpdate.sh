@@ -132,7 +132,7 @@ else
     	echo "Upate All including DMRids, Nextion DMRIds ..."
 	    sudo curl -# -o ${DMRIDFILE} ${HostURL}/DMRIds.dat --user-agent "Pi-Star_${pistarCurVersion}"
 	    
-	    echo "Update NextionDriver DMRIds from radioid.net/static/user.csv ... " 
+	    echo "Update NextionDriver DMRIds from ${NextionHostURL} ... " 
 		cd /tmp; sudo rm -f user.*;  
 		sudo curl -# -o /tmp/user.csv  ${NextionHostURL}/user.csv --user-agent "Pi-Star_${pistarCurVersion}"
 		mv /tmp/user.csv /usr/local/etc/stripped.csv

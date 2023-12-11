@@ -92,7 +92,8 @@ fi
 			cp /var/www/dashboard/patch/tinyfilemanager-auth.php /etc/tinyfilemanager-auth.php
 			echo "/etc/tinyfilemanager-auth.php NOT exist"
 		else
-			echo "/etc/tinyfilemanager-auth.php exist , ignore it"
+			echo "/etc/tinyfilemanager-auth.php exist , Replace to NOT auth "
+			cp /var/www/dashboard/patch/tinyfilemanager-auth.php /etc/tinyfilemanager-auth.php
 		fi
 
 		if [ ! -e /etc/tinyfilemanager-config.php ]; then 
