@@ -109,6 +109,17 @@ fi
 		  cp /usr/local/sbin/patch-scripts/p25gateway.txt /etc/p25gateway
 		fi
 		cat /etc/p25gateway
+
+		# FIX Allstarlink can't connect to Public Node.
+		fileUpdate_node_list_service="/etc/systemd/system/update-node-list.service"
+		if [ -f ${fileUpdate_node_list_service} ]; then   
+			echo "Detected is ASL IMG OS: fix the bug, ${fileUpdate_node_list_service}"
+			chmod +x /usr/local/sbin/update-node-list.sh
+			systemctl restart update-node-list.service
+		else 
+			echo "Detected NOT ASL IMG OS, skip fix ASL bug, file ${fileUpdate_node_list_service} NOT exist"
+		fi
+ 
 	}
 
 	if [ -t 1 ]; then
