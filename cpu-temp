@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Version 1.6.0 
+# Get CPU temperature
+if [ -f /sys/class/thermal/thermal_zone0/temp ] ; then
+        if [ -x /usr/bin/bc ] ; then
+                cpu=$(</sys/class/thermal/thermal_zone0/temp)
+                cpu=$(echo "$cpu / 100 * 0.1" | bc)
+                cpuf=$(echo "(1.8 * $cpu) + 32" | bc)
+                TEMPERATURE="$cpu C ($cpuf F)"
+                echo "CPU temperature: $TEMPERATURE"
+        fi
+fi
+
+exit 0
+

@@ -1,0 +1,53 @@
+#!/bin/sh
+# set -o errexit
+
+######################################################
+SCRIPT_VERSION="GPIO reset 1.6"                      #
+SCRIPT_AUTHOR="N4IRS"                                #
+SCRIPT_DATE="10/27/2020"                             #
+######################################################
+
+if [ "$1" != "" ]; then
+    case $1 in
+        -v|-V|--version) echo $SCRIPT_VERSION; exit 0 ;;
+        -a|-A|--author)  echo $SCRIPT_AUTHOR;  exit 0 ;;
+        -d|-D|--date)    echo $SCRIPT_DATE;    exit 0 ;;
+                   *)    echo "Unknown parameter used: $1"; exit 1 ;;
+    esac
+fi
+
+echo
+echo $SCRIPT_VERSION $SCRIPT_DATE
+echo
+
+# GPIO numbers should be from this list
+# 0, 1, 4, 7, 8, 9, 10, 11, 14, 15, 17, 18, 21, 22, 23, 24, 25
+
+# Note that the GPIO numbers that you program here refer to the pins
+# of the BCM2835 and *not* the numbers on the pin header.
+# So, if you want to activate GPIO7 on the header you should be
+# using GPIO4 in this script. Likewise if you want to activate GPIO0
+# on the header you should be using GPIO17 here.
+
+# https://elinux.org/RPi_GPIO_Code_Samples#Shell
+
+# THIS IS A BCM PIN NUMBER, NOT A WIRINGPI PIN NUMBER!
+# static const unsigned char RESET_PIN = 4;
+
+if [ -f /sys/class/gpio/gpio4/direction ] ; then
+	# Set up GPIO 4 and set to output
+	echo "4" > /sys/class/gpio/export
+	echo "out" > /sys/class/gpio/gpio4/direction
+
+	# Write output
+	echo "1" > /sys/class/gpio/gpio4/value
+	sleep .25
+	echo "0" > /sys/class/gpio/gpio4/value
+
+	# Clean up
+	echo "4" > /sys/class/gpio/unexport
+
+	exit 0
+fi
+
+

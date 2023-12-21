@@ -1,0 +1,36 @@
+#!/bin/bash
+set -o errexit
+
+################################################
+SCRIPT_VERSION="Password reset script v.1.6.0" #
+SCRIPT_AUTHOR="N4IRS"                          #
+SCRIPT_DATE="10/27/2020"                       #
+################################################
+
+# the file /boot/passwd_reset contains a single line
+# login:password
+#
+# The script is run at each boot by /etc/rc.local
+
+if [ "$1" != "" ]; then
+    case $1 in
+        -v|-V|--version) echo $SCRIPT_VERSION; exit 0 ;;
+        -a|-A|--author) echo $SCRIPT_AUTHOR; exit 0 ;;
+        -d|-D|--date) echo $SCRIPT_DATE; exit 0 ;;
+          *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+fi
+
+filename="/boot/passwd_reset"
+if [ -a "$filename" ];  then
+        chpasswd < $filename
+                if [ $? -eq 0 ]; then
+                        rm $filename
+                        touch /boot/passwd_reset_COMPLETE
+                else
+                        touch /boot/passwd_reset_FAIL
+                        exit 1
+                fi
+exit 0
+fi
+
