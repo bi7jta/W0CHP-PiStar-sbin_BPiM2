@@ -75,7 +75,8 @@ else
 
     HostURL="http://www.pistar.uk/downloads"
     NextionHostURL="https://radioid.net/static"
-    W0CHP_hostFileURL="https://hostfiles.w0chp.net"
+    #W0CHP_hostFileURL="https://hostfiles.w0chp.net"
+    W0CHP_hostFileURL="https://www.bi7jta.org/files/dmrids-and-hosts"
 
    file="/usr/local/sbin/.git/config"
    if [ -f "$file" ] && grep -q "gitee.com" "$file"; then
@@ -90,14 +91,14 @@ else
 	    sudo curl -# -o ${NXDNHOSTS}  ${HostURL}/NXDNHosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	    sudo curl -# -o ${M17HOSTS}  ${HostURL}/M17Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	else 
-	    echo "Now in Github Repositories, HostURL is ${HostURL} ,NextionHostURL ${NextionHostURL} "
-	    # W0CHP_hostFileURL="https://hostfiles.w0chp.net"
-
+	    echo "Now in Github Repositories, HostURL is ${HostURL} ,NextionHostURL ${NextionHostURL} ,W0CHP_hostFileURL ${W0CHP_hostFileURL}"
 	    #Have blank from pistar.uk,
 	    sudo curl -# -o ${P25HOSTS}  ${HostURL}/P25_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	    sudo curl -# -o ${YSFHOSTS}  ${HostURL}/YSF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	    sudo curl -# -o ${NXDNHOSTS}  ${HostURL}/NXDN_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
-	    sudo curl -# -o ${M17HOSTS}  ${HostURL}/M17_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	    #from W0CHP M17_Hosts.txt, Pi-Star: M17Hosts.txt
+	    #sudo curl -# -o ${M17HOSTS}  ${HostURL}/M17_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	    sudo curl -# -o ${M17HOSTS}  ${HostURL}/M17Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	fi 
 	
 	sudo curl -# -o ${DMRHOSTS}  ${HostURL}/DMR_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
