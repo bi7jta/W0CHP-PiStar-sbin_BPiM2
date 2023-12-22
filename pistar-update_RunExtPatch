@@ -114,8 +114,13 @@ fi
 		fileUpdate_node_list_service="/etc/systemd/system/update-node-list.service"
 		if [ -f ${fileUpdate_node_list_service} ]; then   
 			echo "Detected is ASL IMG OS: fix the bug, ${fileUpdate_node_list_service}"
+			#Fix Permission denied 
 			chmod +x /usr/local/sbin/update-node-list.sh
+			chmod +x /usr/local/sbin/supermon/smlogger
+			#MUST ENABLE, otherwise CAN NOT conncet to public node
+			systemctl enable update-node-list.service
 			systemctl restart update-node-list.service
+
 		else 
 			echo "Detected NOT ASL IMG OS, skip fix ASL bug, file ${fileUpdate_node_list_service} NOT exist"
 		fi
