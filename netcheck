@@ -10,7 +10,8 @@ while [ $reachable -ne 0 ]; do
  # Check host
  # ping -q -c 1 -W 1 "www.google.com" > /dev/null 2>&1
  echo >>/var/log/netcheck
- wget https://google.com/robots.txt --spider --tries 10 --output-document=/tmp/robots.txt --append-output=/var/log/netcheck
+wget https://google.com/robots.txt --spider --tries 10 --output-document=/tmp/robots.txt --append-output=/var/log/netcheck
+ # wget https://baidu.com/robots.txt --spider --tries 10 --output-document=/tmp/robots.txt --append-output=/var/log/netcheck
  # Check return code
  wget_exit_code=$? 
   if [ $wget_exit_code -eq 0 ]; then
