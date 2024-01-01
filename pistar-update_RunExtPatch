@@ -81,8 +81,9 @@ fi
 		echo "$(tail -500 /var/log/Analog_Bridge.log)" > /var/log/Analog_Bridge.log
 
 		#Fix SSL Cert error
-		chmod +x /usr/local/sbin/patch-scripts/Patch_Fix_ASL-3in1-OS-SSL_Certs_not_update_bug.sh
-		/usr/local/sbin/patch-scripts/Patch_Fix_ASL-3in1-OS-SSL_Certs_not_update_bug.sh
+		echo "The J-STAR V2 not need to run Fix SSL Cert error in ASL IMG again"
+		# chmod +x /usr/local/sbin/patch-scripts/Patch_Fix_ASL-3in1-OS-SSL_Certs_not_update_bug.sh
+		# /usr/local/sbin/patch-scripts/Patch_Fix_ASL-3in1-OS-SSL_Certs_not_update_bug.sh
 
 		#Fix HDMI 1080p not full screen
 		chmod +x /usr/local/sbin/patch-scripts/Patch_Support_HDMI_1080p_FullScrean_RPi4B.sh
