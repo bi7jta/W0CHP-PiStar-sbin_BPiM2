@@ -222,14 +222,15 @@ main_function() {
 	/usr/local/sbin/HostFilesUpdate.sh 
 	echo -e "${TICK} Done!\n"
 
-	echo "Updating Pi-Star-Firewall..."
+	#echo "Updating Pi-Star-Firewall..."
+	echo "============Ignore update Pi-Star-Firewall============"
 	# check if user already has firewall disabled, and if so, ensure it's kept that way.
-	if ! grep -q LOGNDROP /etc/iptables.rules ; then
-        	/usr/local/sbin/pistar-system-manager -dfw > /dev/null 2>&1
-    	else
-        	/usr/local/sbin/pistar-system-manager -efw > /dev/null 2>&1
-    	fi
-	echo -e "${TICK} Done!\n"
+	#if ! grep -q LOGNDROP /etc/iptables.rules ; then
+    #    	/usr/local/sbin/pistar-system-manager -dfw > /dev/null 2>&1
+    #	else
+    #    	/usr/local/sbin/pistar-system-manager -efw > /dev/null 2>&1
+    #	fi
+	#echo -e "${TICK} Done!\n"
 
 	echo "Performing maintenance tasks..."
 
