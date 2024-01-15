@@ -3,17 +3,36 @@
 # Return the version of the Raspberry Pi we are running on
 # Written by Andy Taylor (MW0MWZ)
 # Enhanced by W0CHP
+# RPi 5B support by BI7JTA@J-STAR
 #
 # Pi Rev codes available at <https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#raspberry-pi-revision-codes>
 
 # Pull the CPU Model from /proc/cpuinfo
 modelName=$(grep -m 1 'model name' /proc/cpuinfo | sed 's/.*: //')
 hardwareField=$(grep 'Hardware' /proc/cpuinfo | sed 's/.*: //')
+
+# Pi 4B ;;;;;;;;;;;;;;;;
+# model name  : ARMv7 Processor rev 3 (v7l)
+# Hardware    : BCM2711
+# Revision    : b03115
+# Serial      : 100000006ef719df
+# Model       : Raspberry Pi 4 Model B Rev 1.5
+
+# RPi 5B ;;;;;;;;;;;;;;;;
+# NO " model name ,Hardware"
+# Revision    : d04170
+# Serial      : 683e0fbff53f1a6f
+# Model       : Raspberry Pi 5 Model B Rev 1.0
+
 arch=$(uname -m)
 
 if [ -f /proc/device-tree/model ]; then
     raspberryModel=$(tr -d '\0' </proc/device-tree/model | sed 's/Rev/Rev./')
+    #RPi 5B output
+    #Raspberry Pi 5 Model B Rev. 1.0
 fi
+
+#echo "/proc/device-tree/model: $raspberryModel"
 
 if [[ ${modelName} == "ARM"* ]]; then
     # Pull the Board revision from /proc/cpuinfo
@@ -96,6 +115,16 @@ if [[ ${modelName} == "ARM"* ]]; then
     
 elif [[ ${hardwareField} == *"sun8i"* ]]; then
     echo "sun8i based Pi Clone"
+elif [[ -n ${raspberryModel} ]]; then
+    #RPi 5B
+    shopt -s nocasematch
+    raspberryModel="Raspberry Pi 5 Model B"
+    if [[ $raspberryModel == *"raspberry pi 5 model b"* ]]; then
+      echo "${raspberryModel} Broadcom BCM2712 2.4GHz 4-Core 64-bit ARM Cortex-A76 CPU"
+    else
+      echo ${raspberryModel}
+    fi
+    shopt -u nocasematch  # Restore case sensitive Settings
 else
     echo "Generic "`uname -p`" class computer"
 fi
