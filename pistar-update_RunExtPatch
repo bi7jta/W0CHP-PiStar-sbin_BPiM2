@@ -21,76 +21,80 @@ if ! flock -n 200 ; then
 fi
 
 	main_function() {
-	    echo "Run patch scripts for BPiM2 ..."
-	    echo "Disable Nginx access.log ..."
-	    sudo sh -c 'echo "" > /var/log/nginx/access.log' 
-	    sudo sed -i  "/access_log \/var\/log\/nginx\/access.log;/d" /etc/nginx/nginx.conf
-	    sudo sed -i '/error_log\ \/var\/log\/nginx\/error.log/ i\access_log off;' /etc/nginx/nginx.conf
-	    sudo nginx -s reload
+	    echo "Run patch scripts  ..."
+	    #Remove from V2.2 J-STAR
+	    #echo "Disable Nginx access.log ..."
+	    #sudo sh -c 'echo "" > /var/log/nginx/access.log' 
+	    #sudo sed -i  "/access_log \/var\/log\/nginx\/access.log;/d" /etc/nginx/nginx.conf
+	    #sudo sed -i '/error_log\ \/var\/log\/nginx\/error.log/ i\access_log off;' /etc/nginx/nginx.conf
+	    #sudo nginx -s reload
 	    
-	    echo "Disable BPiM2 HDMI sleep ..."
-	    sudo sed -i  "s#\#xserver-command=X#xserver-command=X\ -s\ 0\ -dpms#g" /etc/lightdm/lightdm.conf
+	    #echo "Disable BPiM2 HDMI sleep ..."
+	    #Remove from V2.2 J-STAR
+	    #sudo sed -i  "s#\#xserver-command=X#xserver-command=X\ -s\ 0\ -dpms#g" /etc/lightdm/lightdm.conf
 
-		echo "fix DVSwitch log dir not create /var/log/mmdvm"
-		if [ -e /lib/systemd/system/mmdvm_bridge.service ]; then 
-			sudo sed -i  "/ExecStartPre/d" /lib/systemd/system/mmdvm_bridge.service
-			sudo sed -i '/ExecStart=/ i\ExecStartPre=mkdir -p /var/log/mmdvm' /lib/systemd/system/mmdvm_bridge.service
-			cat /lib/systemd/system/mmdvm_bridge.service
-			sudo systemctl daemon-reload
-			sudo systemctl restart mmdvm_bridge.service
-			sudo systemctl status mmdvm_bridge.service
-		fi
+		#echo "fix DVSwitch log dir not create /var/log/mmdvm"
+		#Remove from V2.2 J-STAR
+		#if [ -e /lib/systemd/system/mmdvm_bridge.service ]; then 
+		#	sudo sed -i  "/ExecStartPre/d" /lib/systemd/system/mmdvm_bridge.service
+		#	sudo sed -i '/ExecStart=/ i\ExecStartPre=mkdir -p /var/log/mmdvm' /lib/systemd/system/mmdvm_bridge.service
+		#	cat /lib/systemd/system/mmdvm_bridge.service
+		#	sudo systemctl daemon-reload
+		#	sudo systemctl restart mmdvm_bridge.service
+		#	sudo systemctl status mmdvm_bridge.service
+		#fi
 
-		echo "fix DVSwitch log dir not create /var/log/dvswitch"
-		if [ -e /lib/systemd/system/analog_bridge.service ]; then 
-			sudo sed -i  "/ExecStartPre/d" /lib/systemd/system/analog_bridge.service
-			sudo sed -i '/ExecStart=/ i\ExecStartPre=mkdir -p /var/log/dvswitch' /lib/systemd/system/analog_bridge.service
-			cat /lib/systemd/system/analog_bridge.service
-			sudo systemctl daemon-reload
-			sudo systemctl restart analog_bridge.service
-			sudo systemctl status analog_bridge.service
-		fi
+		#echo "fix DVSwitch log dir not create /var/log/dvswitch"
+		#Remove from V2.2 J-STAR
+		#if [ -e /lib/systemd/system/analog_bridge.service ]; then 
+		#	sudo sed -i  "/ExecStartPre/d" /lib/systemd/system/analog_bridge.service
+		#	sudo sed -i '/ExecStart=/ i\ExecStartPre=mkdir -p /var/log/dvswitch' /lib/systemd/system/analog_bridge.service
+		#	cat /lib/systemd/system/analog_bridge.service
+		#	sudo systemctl daemon-reload
+		#	sudo systemctl restart analog_bridge.service
+		#	sudo systemctl status analog_bridge.service
+		#fi
 
-		echo "fix disable D-Star YSF P25 NXDN in /opt/MMDVM_Bridge/MMDVM_Bridge.ini, otherwise will cause the MMDVM_Bridge.service start error"
-		if [ -e /opt/MMDVM_Bridge/MMDVM_Bridge.ini ]; then 
-			sed -i '/\[D-Star\]/{N;s/Enable=1/Enable=0/}' /opt/MMDVM_Bridge/MMDVM_Bridge.ini;
-			sed -i '/\[System\ Fusion\]/{N;s/Enable=1/Enable=0/}' /opt/MMDVM_Bridge/MMDVM_Bridge.ini;
-			sed -i '/\[P25\]/{N;s/Enable=1/Enable=0/}' /opt/MMDVM_Bridge/MMDVM_Bridge.ini;
-			sed -i '/\[NXDN\]/{N;s/Enable=1/Enable=0/}' /opt/MMDVM_Bridge/MMDVM_Bridge.ini;
-			cat /opt/MMDVM_Bridge/MMDVM_Bridge.ini
-	    fi
+		#echo "fix disable D-Star YSF P25 NXDN in /opt/MMDVM_Bridge/MMDVM_Bridge.ini, otherwise will cause the MMDVM_Bridge.service start error"
+		#if [ -e /opt/MMDVM_Bridge/MMDVM_Bridge.ini ]; then 
+		#	sed -i '/\[D-Star\]/{N;s/Enable=1/Enable=0/}' /opt/MMDVM_Bridge/MMDVM_Bridge.ini;
+		#	sed -i '/\[System\ Fusion\]/{N;s/Enable=1/Enable=0/}' /opt/MMDVM_Bridge/MMDVM_Bridge.ini;
+		#	sed -i '/\[P25\]/{N;s/Enable=1/Enable=0/}' /opt/MMDVM_Bridge/MMDVM_Bridge.ini;
+		#	sed -i '/\[NXDN\]/{N;s/Enable=1/Enable=0/}' /opt/MMDVM_Bridge/MMDVM_Bridge.ini;
+		#	cat /opt/MMDVM_Bridge/MMDVM_Bridge.ini
+	    #fi
 
-	    echo "Add the follow to daily, hourly ..."
-		echo "Shrink /var/log/mmdvm/MMDVM_Bridge-xxx.log log to stop it getting out of hand"
-		MMDVM_BridgeLogFile=/var/log/mmdvm/MMDVM_Bridge-`date "+%Y-%m-%d"`.log
-		if [ ! -f ${MMDVM_BridgeLogFile} ]; then   
-		    MMDVM_BridgeLogFile=/var/log/mmdvm/MMDVM_Bridge-`date -d'-1 day' "+%Y-%m-%d"`.log    
-		fi
+	    #echo "Add the follow to daily, hourly ..."
+		#echo "Shrink /var/log/mmdvm/MMDVM_Bridge-xxx.log log to stop it getting out of hand"
+		#MMDVM_BridgeLogFile=/var/log/mmdvm/MMDVM_Bridge-`date "+%Y-%m-%d"`.log
+		# [ ! -f ${MMDVM_BridgeLogFile} ]; then   
+		#    MMDVM_BridgeLogFile=/var/log/mmdvm/MMDVM_Bridge-`date -d'-1 day' "+%Y-%m-%d"`.log    
+		#fi
 
-		echo "Log file: ${MMDVM_BridgeLogFile}"
-		echo "Just keep one days logs"
-		sudo find /var/log/mmdvm/ ! -wholename ${MMDVM_BridgeLogFile} -type f -exec rm -f {} +
+		#echo "Log file: ${MMDVM_BridgeLogFile}"
+		#echo "Just keep one days logs"
+		#sudo find /var/log/mmdvm/ ! -wholename ${MMDVM_BridgeLogFile} -type f -exec rm -f {} +
 
-		if [ -f ${MMDVM_BridgeLogFile} ]; then   
-			stat  ${MMDVM_BridgeLogFile}
-			sudo sh -c "tail -500 ${MMDVM_BridgeLogFile} > ${MMDVM_BridgeLogFile}"
-			stat  ${MMDVM_BridgeLogFile}
-		fi
+		#if [ -f ${MMDVM_BridgeLogFile} ]; then   
+		#	stat  ${MMDVM_BridgeLogFile}
+		#	sudo sh -c "tail -500 ${MMDVM_BridgeLogFile} > ${MMDVM_BridgeLogFile}"
+		#	stat  ${MMDVM_BridgeLogFile}
+		#fi
 
 		# Shrink /var/log/Analog_Bridge.log log to stop it getting out of hand
-		echo "$(tail -500 /var/log/Analog_Bridge.log)" > /var/log/Analog_Bridge.log
+		#echo "$(tail -500 /var/log/Analog_Bridge.log)" > /var/log/Analog_Bridge.log
 
 		#Fix SSL Cert error
-		echo "The J-STAR V2 not need to run Fix SSL Cert error in ASL IMG again"
+		#echo "The J-STAR V2 not need to run Fix SSL Cert error in ASL IMG again"
 		# chmod +x /usr/local/sbin/patch-scripts/Patch_Fix_ASL-3in1-OS-SSL_Certs_not_update_bug.sh
 		# /usr/local/sbin/patch-scripts/Patch_Fix_ASL-3in1-OS-SSL_Certs_not_update_bug.sh
 
-		echo "Fix HDMI 1080p not full screen"
-		chmod +x /usr/local/sbin/patch-scripts/Patch_Support_HDMI_1080p_FullScrean_RPi4B.sh
-		/usr/local/sbin/patch-scripts/Patch_Support_HDMI_1080p_FullScrean_RPi4B.sh
+		#echo "Fix HDMI 1080p not full screen"
+		#chmod +x /usr/local/sbin/patch-scripts/Patch_Support_HDMI_1080p_FullScrean_RPi4B.sh
+		#/usr/local/sbin/patch-scripts/Patch_Support_HDMI_1080p_FullScrean_RPi4B.sh
 
-		echo "Fix Patch_FIX_I2C_OLED_NOT_ENABLE"
-		sudo mount -o remount,rw /boot
+		#echo "Fix Patch_FIX_I2C_OLED_NOT_ENABLE"
+		#sudo mount -o remount,rw /boot
 		 
 		config_file="/boot/config.txt"
 		search_pattern="#.*dtparam=i2c_arm=on$"
@@ -113,42 +117,42 @@ fi
 		fi
 		echo "DONE! Reboot to use I2C_OLED display"
 
-		if [ ! -e /etc/tinyfilemanager-auth.php ]; then 
-			cp /var/www/dashboard/patch/tinyfilemanager-auth.php /etc/tinyfilemanager-auth.php
-			echo "/etc/tinyfilemanager-auth.php NOT exist"
-		else
-			echo "/etc/tinyfilemanager-auth.php exist , Replace to NOT auth "
-			cp /var/www/dashboard/patch/tinyfilemanager-auth.php /etc/tinyfilemanager-auth.php
-		fi
+		#if [ ! -e /etc/tinyfilemanager-auth.php ]; then 
+		#	cp /var/www/dashboard/patch/tinyfilemanager-auth.php /etc/tinyfilemanager-auth.php
+		#	echo "/etc/tinyfilemanager-auth.php NOT exist"
+		#else
+		#	echo "/etc/tinyfilemanager-auth.php exist , Replace to NOT auth "
+		#	cp /var/www/dashboard/patch/tinyfilemanager-auth.php /etc/tinyfilemanager-auth.php
+		#fi
 
-		if [ ! -e /etc/tinyfilemanager-config.php ]; then 
-			cp /var/www/dashboard/patch/tinyfilemanager-config.php /etc/tinyfilemanager-config.php
-		fi
+		#if [ ! -e /etc/tinyfilemanager-config.php ]; then 
+		#	cp /var/www/dashboard/patch/tinyfilemanager-config.php /etc/tinyfilemanager-config.php
+		#fi
 
         #FIX p25gateway no data 
-        FIND_STR="\[Network\]"
-        if [ `grep -c "$FIND_STR" /etc/p25gateway ` -ne '0' ];then
-		  echo "Find $FIND_STR in p25gateway, ignore it."
-		else
-		  echo "${FIND_STR} NOT FOUND, fix it"
-		  cp /usr/local/sbin/patch-scripts/p25gateway.txt /etc/p25gateway
-		fi
-		cat /etc/p25gateway
+        #FIND_STR="\[Network\]"
+        #if [ `grep -c "$FIND_STR" /etc/p25gateway ` -ne '0' ];then
+		#  echo "Find $FIND_STR in p25gateway, ignore it."
+		#else
+		#  echo "${FIND_STR} NOT FOUND, fix it"
+		#  cp /usr/local/sbin/patch-scripts/p25gateway.txt /etc/p25gateway
+		#fi
+		#cat /etc/p25gateway
 
 		# FIX Allstarlink can't connect to Public Node.
-		fileUpdate_node_list_service="/etc/systemd/system/update-node-list.service"
-		if [ -f ${fileUpdate_node_list_service} ]; then   
-			echo "Detected is ASL IMG OS: fix the bug, ${fileUpdate_node_list_service}"
-			#Fix Permission denied 
-			chmod +x /usr/local/sbin/update-node-list.sh
-			chmod +x /usr/local/sbin/supermon/smlogger
-			#MUST ENABLE, otherwise CAN NOT conncet to public node
-			systemctl enable update-node-list.service
-			systemctl restart update-node-list.service
+		#fileUpdate_node_list_service="/etc/systemd/system/update-node-list.service"
+		#if [ -f ${fileUpdate_node_list_service} ]; then   
+		#	echo "Detected is ASL IMG OS: fix the bug, ${fileUpdate_node_list_service}"
+		#	#Fix Permission denied 
+		#	chmod +x /usr/local/sbin/update-node-list.sh
+		#	chmod +x /usr/local/sbin/supermon/smlogger
+		#	#MUST ENABLE, otherwise CAN NOT conncet to public node
+		#	systemctl enable update-node-list.service
+		#	systemctl restart update-node-list.service
 
-		else 
-			echo "Detected NOT ASL IMG OS, skip fix ASL bug, file ${fileUpdate_node_list_service} NOT exist"
-		fi
+		#else 
+		#	echo "Detected NOT ASL IMG OS, skip fix ASL bug, file ${fileUpdate_node_list_service} NOT exist"
+		#fi
  
 	}
 
