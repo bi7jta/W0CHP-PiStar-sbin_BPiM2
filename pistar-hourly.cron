@@ -110,7 +110,20 @@ bash /usr/local/sbin/pistar-motdgen
 # run any slipstream tasks
 bash /usr/local/sbin/slipstream-tasks.sh > /dev/null 2>&1
 
+echo "======================================="
+echo "show me the size: /var/log/... "
+find /var/log -type f -exec du -h --apparent-size {} + | sort -rh
+du -h /var/log 
 
+echo ""
+echo "Shrink : /var/log/ the file size larger than 1MB"
+find /var/log/ -type f -size +1M -exec sh -c 'tail -n 500 {} > {}' \;
+echo ""
+
+echo "======================================="
+echo "show me the size again: /var/log/... "
+find /var/log -type f -exec du -h --apparent-size {} + | sort -rh
+du -h /var/log 
 
 /bin/sync
 /bin/sync
