@@ -181,8 +181,7 @@ fi
 		else
 		    echo "Error: $dhcpcd_conf not found."
 		fi
-
-		echo "======================================="
+ 
 		echo "show me the size: /var/log/... "
 		find /var/log -type f -exec du -h --apparent-size {} + | sort -rh
 		du -h /var/log 
@@ -191,10 +190,21 @@ fi
 		echo "Shrink : /var/log/ the file size larger than 1MB"
 		find /var/log/ -type f -size +1M -exec sh -c 'tail -n 500 {} > {}' \;
 		echo ""
-		echo "======================================="
+ 
 		echo "show me the size again: /var/log/... "
 		find /var/log -type f -exec du -h --apparent-size {} + | sort -rh
 		du -h /var/log 
+        
+        echo "Fix v2.3 rustdesk same ID issue "
+		/usr/local/sbin/J-STAR-OS-Patch_Fix_v2.3_rustdesk_same-ID-issue.sh
+
+		echo "Fix the /usr/local/etc lost"
+		cp -rf /var/wwww/dashboard/patch/os.usr.local.etc/DMR_Audio /usr/local/etc/
+		cp -rf /var/wwww/dashboard/patch/os.usr.local.etc/dstarrepeater /usr/local/etc/
+		cp -rf /var/wwww/dashboard/patch/os.usr.local.etc/ircddbgateway /usr/local/etc/
+		cp -rf /var/wwww/dashboard/patch/os.usr.local.etc/M17_Audio /usr/local/etc/
+		cp -rf /var/wwww/dashboard/patch/os.usr.local.etc/NXDN_Audio /usr/local/etc/
+		cp -rf /var/wwww/dashboard/patch/os.usr.local.etc/P25_Audio /usr/local/etc/
 
 	}
 

@@ -93,9 +93,9 @@ else
 	else 
 	    echo "Now in Github Repositories, HostURL is ${HostURL} ,NextionHostURL ${NextionHostURL} ,W0CHP_hostFileURL ${W0CHP_hostFileURL}"
 	    #Have blank from pistar.uk,
-	    sudo curl -# -o ${P25HOSTS}  ${HostURL}/P25_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
-	    sudo curl -# -o ${YSFHOSTS}  ${HostURL}/YSF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
-	    sudo curl -# -o ${NXDNHOSTS}  ${HostURL}/NXDN_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	    sudo curl -# -o ${P25HOSTS}  ${HostURL}/P25Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	    sudo curl -# -o ${YSFHOSTS}  ${HostURL}/YSFHosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	    sudo curl -# -o ${NXDNHOSTS}  ${HostURL}/NXDNHosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	    #from W0CHP M17_Hosts.txt, Pi-Star: M17Hosts.txt
 	    #sudo curl -# -o ${M17HOSTS}  ${HostURL}/M17_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
 	    sudo curl -# -o ${M17HOSTS}  ${HostURL}/M17Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
