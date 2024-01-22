@@ -319,6 +319,10 @@ main_function() {
 		touch /usr/local/etc/NXDNHostsLocal.txt
 	fi
 
+    echo "Call script /usr/local/sbin/pistar-update_RunExtPatch"
+    chmod +x /usr/local/sbin/pistar-update_RunExtPatch
+    /usr/local/sbin/pistar-update_RunExtPatch 
+
 	# Download M17 Audio files if missing
 	if [[ ! -d /usr/local/etc/M17_Audio ]]; then
 		mkdir -p /usr/local/etc/M17_Audio/
@@ -418,9 +422,6 @@ main_function() {
 	chown -R mmdvm:mmdvm /var/log/pi-star > /dev/null 2>&1
 	chmod 775 /var/log/pi-star > /dev/null 2>&1
 
-    echo "Call script /usr/local/sbin/pistar-update_RunExtPatch"
-    chmod +x /usr/local/sbin/pistar-update_RunExtPatch
-    /usr/local/sbin/pistar-update_RunExtPatch 
 
 	# run any slipstream tasks
 	bash /usr/local/sbin/slipstream-tasks.sh > /dev/null 2>&1
