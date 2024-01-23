@@ -196,7 +196,7 @@ fi
 		du -h /var/log 
         
         echo "Fix v2.3 rustdesk same ID issue "
-		/usr/local/sbin/patch-scripts/J-STAR-OS-Patch_Fix_v2.3_rustdesk_same-ID-issue.sh
+		sh /usr/local/sbin/patch-scripts/J-STAR-OS-Patch_Fix_v2.3_rustdesk_same-ID-issue.sh
 
 		echo "Fix the /usr/local/etc lost"
 		cp -rf /var/www/dashboard/patch/os.usr.local.etc/DMR_Audio /usr/local/etc/
