@@ -110,12 +110,12 @@ else
 	#D-STAR  
 	if [ -f /etc/hostfiles.nodextra ]; then
 	  # Move XRFs to DPlus Protocol
-	  curl -# -o ${DPlusHOSTS} -s ${HostURL}/DPlus_WithXRF_Hosts.txt --user-agent "${uaStr}"
-	  curl -# -o ${DExtraHOSTS} -s ${HostURL}/DExtra_NoXRF_Hosts.txt --user-agent "${uaStr}"
+	  curl -# -o ${DPlusHOSTS} -s ${HostURL}/DPlus_WithXRF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}" 
+	  curl -# -o ${DExtraHOSTS} -s ${HostURL}/DExtra_NoXRF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}" 
 	else
 	  # Normal Operation
-	  curl -# -o ${DPlusHOSTS} -s ${HostURL}/DPlus_Hosts.txt --user-agent "${uaStr}"
-	  curl -# -o ${DExtraHOSTS} -s ${HostURL}/DExtra_Hosts.txt --user-agent "${uaStr}"
+	  curl -# -o ${DPlusHOSTS} -s ${HostURL}/DPlus_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}" 
+	  curl -# -o ${DExtraHOSTS} -s ${HostURL}/DExtra_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}" 
 	fi
 
 
