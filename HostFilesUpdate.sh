@@ -51,6 +51,7 @@ else
 
 	DExtraHOSTS=/usr/local/etc/DExtra_Hosts.txt
     DPlusHOSTS=/usr/local/etc/DPlus_Hosts.txt
+    DCSHOSTS=/usr/local/etc/DCS_Hosts.txt
 
 	#W0CHP独有的本地文件定义
 	APRSHOSTS=/usr/local/etc/APRSHosts.txt
@@ -108,6 +109,7 @@ else
 	sudo curl -# -o ${M17HOSTS}  ${HostURL}/M17Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}" 
 
 	#D-STAR  
+	sudo curl -# -o ${DCSHOSTS}  ${HostURL}/DCS_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}" 
 	if [ -f /etc/hostfiles.nodextra ]; then
 	  # Move XRFs to DPlus Protocol
 	  curl -# -o ${DPlusHOSTS} -s ${HostURL}/DPlus_WithXRF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}" 
