@@ -117,6 +117,9 @@ fi
 		fi
 		echo "DONE! Reboot to use I2C_OLED display"
 
+		echo "Disable_shellinabox_SSL inJ-STAR x86 "
+		patch-scripts/Patch_Disable_shellinabox_SSL.sh
+
 		#if [ ! -e /etc/tinyfilemanager-auth.php ]; then 
 		#	cp /var/www/dashboard/patch/tinyfilemanager-auth.php /etc/tinyfilemanager-auth.php
 		#	echo "/etc/tinyfilemanager-auth.php NOT exist"
