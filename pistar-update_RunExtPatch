@@ -123,6 +123,10 @@ fi
         echo "Call Patch_Set_Python2_fix_PISTAR_watch-dog_not_work.sh"
 		/usr/local/sbin/patch-scripts/Patch_Set_Python2_fix_PISTAR_watch-dog_not_work.sh
 
+		echo "Disable MMDVMHost.service , because MMDVMHost.timer will enable it."
+		echo "The purpose is fix the error: Cannot open device - /dev/ttyNextionDriver ,in RPi 5B when OS boot"
+		systemctl disable mmdvmhost.service
+
 		#if [ ! -e /etc/tinyfilemanager-auth.php ]; then 
 		#	cp /var/www/dashboard/patch/tinyfilemanager-auth.php /etc/tinyfilemanager-auth.php
 		#	echo "/etc/tinyfilemanager-auth.php NOT exist"
