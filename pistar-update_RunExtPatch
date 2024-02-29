@@ -119,6 +119,9 @@ fi
 
 		echo "Disable_shellinabox_SSL inJ-STAR x86 "
 		/usr/local/sbin/patch-scripts/Patch_Disable_shellinabox_SSL.sh
+        
+        echo "Call Patch_Set_Python2_fix_PISTAR_watch-dog_not_work.sh"
+		/usr/local/sbin/patch-scripts/Patch_Set_Python2_fix_PISTAR_watch-dog_not_work.sh
 
 		#if [ ! -e /etc/tinyfilemanager-auth.php ]; then 
 		#	cp /var/www/dashboard/patch/tinyfilemanager-auth.php /etc/tinyfilemanager-auth.php
