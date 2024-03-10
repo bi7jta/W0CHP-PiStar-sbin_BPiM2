@@ -127,6 +127,9 @@ fi
 		echo "The purpose is fix the error: Cannot open device - /dev/ttyNextionDriver ,in RPi 5B when OS boot"
 		systemctl disable mmdvmhost.service
 
+		echo "Call Patch_Fix_Nginx_Service_start_No_LogDir.sh, fix Nginx boot and /var/log has not create."
+		/usr/local/sbin/patch-scripts/Patch_Fix_Nginx_Service_start_No_LogDir.sh
+
 		#if [ ! -e /etc/tinyfilemanager-auth.php ]; then 
 		#	cp /var/www/dashboard/patch/tinyfilemanager-auth.php /etc/tinyfilemanager-auth.php
 		#	echo "/etc/tinyfilemanager-auth.php NOT exist"
