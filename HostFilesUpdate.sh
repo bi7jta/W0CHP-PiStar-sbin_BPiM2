@@ -30,6 +30,8 @@ modelName=$(grep -m 1 'model name' /proc/cpuinfo | sed 's/.*: //')
 hardwareField=$(grep 'Model' /proc/cpuinfo | sed 's/.*: //')
 hwDeetz="${hardwareField} - ${modelName}"
 uaStr="WPSD-HostFileUpdater Ver.# ${psVer} ${dashVer} (${gitBranch}) Call:${CALL} UUID:${uuidStr} [${hwDeetz}] [${osName}]"
+show_url_httpcode="\nRequest URL: %{url_effective}\nHTTP Response Code: %{http_code}\n"
+echo ${show_url_httpcode}
 
 # connectivity check
 #status_code=$(curl -I -m 3 -A " ConnCheck ${uaStr}" --write-out %{http_code} --silent --output /dev/null ${hostFileURL})
@@ -71,12 +73,14 @@ else
 	STRIPPED=/usr/local/etc/stripped.csv
 	COUNTRIES=/usr/local/etc/country.csv
 
-	# 默认情况下，curl是不会显示下载进度的。但是，你可以通过使用“-#”或“--progress-bar”选项来启用进度条 -s：静默不输出任何信息
+	#Remote Host file name in www.pistar.uk
+	P25Hosts=P25_Hosts.txt 
+	YSFHosts=YSF_Hosts.txt 
+	NXDNHosts=NXDN_Hosts.txt
+	M17Hosts=M17_Hosts.txt
 
-	#sudo curl -#  -o ${DMRIDFILE}  http://125.91.17.122:8090/dmrids-and-hosts/DMRIds.dat --user-agent "Pi-Star_${pistarCurVersion}"
-	#sudo curl -#  -o ${P25HOSTS}   http://125.91.17.122:8090/dmrids-and-hosts/P25_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
-	#sudo curl -#  -o ${YSFHOSTS}   http://125.91.17.122:8090/dmrids-and-hosts/YSF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
-	#sudo curl -#  -o ${DMRHOSTS}   http://125.91.17.122:8090/dmrids-and-hosts/DMR_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
+	# 默认情况下，curl是不会显示下载进度的。但是，你可以通过使用“-#”或“--progress-bar”选项来启用进度条 -s：静默不输出任何信息
+    #输出请求URL，HTTP响应代码 ：-w "\nRequest URL: %{url_effective}\nHTTP Response Code: %{http_code}\n"
 
     HostURL="http://www.pistar.uk/downloads"
     NextionHostURL="https://radioid.net/static"
@@ -88,36 +92,38 @@ else
 		HostURL="https://www.bi7jta.cn/files/dmrids-and-hosts"
 		NextionHostURL=${HostURL}
         W0CHP_hostFileURL=${HostURL}
-
+        Remote Host file name in bi7jta.cn , bi7jta.org
+		P25Hosts=P25Hosts.txt 
+		YSFHosts=YSFHosts.txt 
+		NXDNHosts=NXDNHosts.txt
+		M17Hosts=M17Hosts.txt
 	    echo "Now in Chinse Repositories [gitee.com], HostURL change to ${HostURL}, NextionHostURL ${NextionHostURL} "
         #Not have blank from Agent,
 	else 
 	    echo "Now in Github Repositories, HostURL is ${HostURL} ,NextionHostURL ${NextionHostURL} ,W0CHP_hostFileURL ${W0CHP_hostFileURL}"
 	    #Have blank from pistar.uk,
+
 	fi 
 	
-	sudo curl -# -o ${DMRHOSTS}  ${HostURL}/DMR_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
-	sudo curl -# -o ${XLXHOSTS}  ${HostURL}/XLXHosts.txt --user-agent "Pi-Star_${pistarCurVersion}"
-
-	sudo curl -# -o ${P25HOSTS}  ${HostURL}/P25Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}" 
-
-	sudo curl -# -o ${YSFHOSTS}  ${HostURL}/YSFHosts.txt --user-agent "Pi-Star_${pistarCurVersion}" 
-
-	sudo curl -# -o ${NXDNHOSTS}  ${HostURL}/NXDNHosts.txt --user-agent "Pi-Star_${pistarCurVersion}" 
-
-	#from W0CHP M17_Hosts.txt, Pi-Star: M17Hosts.txt
-	sudo curl -# -o ${M17HOSTS}  ${HostURL}/M17Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}" 
+	sudo curl -# -o ${DMRHOSTS}  ${HostURL}/DMR_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"  -w "${show_url_httpcode}"
+	sudo curl -# -o ${XLXHOSTS}  ${HostURL}/XLXHosts.txt --user-agent "Pi-Star_${pistarCurVersion}"  -w "${show_url_httpcode}"
+	
+	#from W0CHP/J-STAR: M17_Hosts.txt, PiStar.ui: M17Hosts.txt
+	sudo curl -# -o ${P25HOSTS}  ${HostURL}/${P25Hosts} --user-agent "Pi-Star_${pistarCurVersion}"  -w "${show_url_httpcode}"
+	sudo curl -# -o ${YSFHOSTS}  ${HostURL}/${YSFHosts} --user-agent "Pi-Star_${pistarCurVersion}"  -w "${show_url_httpcode}"
+	sudo curl -# -o ${NXDNHOSTS}  ${HostURL}/${NXDNHosts} --user-agent "Pi-Star_${pistarCurVersion}"  -w "${show_url_httpcode}"
+	sudo curl -# -o ${M17HOSTS}  ${HostURL}/${M17Hosts} --user-agent "Pi-Star_${pistarCurVersion}"   -w "${show_url_httpcode}"
 
 	#D-STAR  
-	sudo curl -# -o ${DCSHOSTS}  ${HostURL}/DCS_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}" 
+	sudo curl -# -o ${DCSHOSTS}  ${HostURL}/DCS_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"   -w "${show_url_httpcode}"
 	if [ -f /etc/hostfiles.nodextra ]; then
 	  # Move XRFs to DPlus Protocol
-	  curl -# -o ${DPlusHOSTS} -s ${HostURL}/DPlus_WithXRF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}" 
-	  curl -# -o ${DExtraHOSTS} -s ${HostURL}/DExtra_NoXRF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}" 
+	  curl -# -o ${DPlusHOSTS} -s ${HostURL}/DPlus_WithXRF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"   -w "${show_url_httpcode}"
+	  curl -# -o ${DExtraHOSTS} -s ${HostURL}/DExtra_NoXRF_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"   -w "${show_url_httpcode}"
 	else
 	  # Normal Operation
-	  curl -# -o ${DPlusHOSTS} -s ${HostURL}/DPlus_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}" 
-	  curl -# -o ${DExtraHOSTS} -s ${HostURL}/DExtra_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}" 
+	  curl -# -o ${DPlusHOSTS} -s ${HostURL}/DPlus_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"  -w "${show_url_httpcode}"
+	  curl -# -o ${DExtraHOSTS} -s ${HostURL}/DExtra_Hosts.txt --user-agent "Pi-Star_${pistarCurVersion}"  -w "${show_url_httpcode}"
 	fi
 
 
@@ -125,19 +131,19 @@ else
 	# #Generate Host Files
 	uaStr="WPSD-HostFileUpdater Ver.# 4.1.6 283205d9d2 (master) Call:BG6THE UUID:00000000130d8a21_MMDVM_stm32usb_Simplex [Raspberry Pi 3 Model B Plus Rev 1.3 - ARMv7 Processor rev 4 (v7l)] [buster]"
 
-	curl -# -o ${APRSHOSTS}  ${W0CHP_hostFileURL}/APRS_Hosts.txt --user-agent "${uaStr}"
-	curl -# -o ${APRSSERVERS}  ${W0CHP_hostFileURL}/aprs_servers.json --user-agent "${uaStr}"
-	curl -# -o ${TGLISTBM}  ${W0CHP_hostFileURL}/TGList_BM.txt --user-agent "${uaStr}"
-	curl -# -o ${TGLISTTGIF}  ${W0CHP_hostFileURL}/TGList_TGIF.txt --user-agent "${uaStr}"
-	curl -# -o ${TGLISTFREESTARIPSC2}  ${W0CHP_hostFileURL}/TGList_FreeStarIPSC.txt --user-agent "${uaStr}"
-	curl -# -o ${TGLISTSYSTEMX}  ${W0CHP_hostFileURL}/TGList_SystemX.txt --user-agent "${uaStr}"
-	curl -# -o ${TGLISTFREEDMR}  ${W0CHP_hostFileURL}/TGList_FreeDMR.txt --user-agent "${uaStr}"
-	curl -# -o ${TGLISTDMRPLUS}  ${W0CHP_hostFileURL}/TGList_DMRp.txt --user-agent "${uaStr}"
-	curl -# -o ${TGLISTP25}  ${W0CHP_hostFileURL}/TGList_P25.txt --user-agent "${uaStr}"
-	curl -# -o ${TGLISTNXDN}  ${W0CHP_hostFileURL}/TGList_NXDN.txt --user-agent "${uaStr}"
-	curl -# -o ${TGLISTYSF}  ${W0CHP_hostFileURL}/TGList_YSF.txt --user-agent "${uaStr}"
-	curl -# -o ${COUNTRIES}  ${W0CHP_hostFileURL}/country.csv --user-agent "${uaStr}"
-	curl -# -o ${BMTGNAMES}  ${W0CHP_hostFileURL}/BM_TGs.json --user-agent "${uaStr}"
+	curl -# -o ${APRSHOSTS}  ${W0CHP_hostFileURL}/APRS_Hosts.txt --user-agent "${uaStr}"  -w "${show_url_httpcode}"
+	curl -# -o ${APRSSERVERS}  ${W0CHP_hostFileURL}/aprs_servers.json --user-agent "${uaStr}"  -w "${show_url_httpcode}"
+	curl -# -o ${TGLISTBM}  ${W0CHP_hostFileURL}/TGList_BM.txt --user-agent "${uaStr}"   -w "${show_url_httpcode}"
+	curl -# -o ${TGLISTTGIF}  ${W0CHP_hostFileURL}/TGList_TGIF.txt --user-agent "${uaStr}"  -w "${show_url_httpcode}"
+	curl -# -o ${TGLISTFREESTARIPSC2}  ${W0CHP_hostFileURL}/TGList_FreeStarIPSC.txt --user-agent "${uaStr}"   -w "${show_url_httpcode}"
+	curl -# -o ${TGLISTSYSTEMX}  ${W0CHP_hostFileURL}/TGList_SystemX.txt --user-agent "${uaStr}"   -w "${show_url_httpcode}"
+	curl -# -o ${TGLISTFREEDMR}  ${W0CHP_hostFileURL}/TGList_FreeDMR.txt --user-agent "${uaStr}"   -w "${show_url_httpcode}"
+	curl -# -o ${TGLISTDMRPLUS}  ${W0CHP_hostFileURL}/TGList_DMRp.txt --user-agent "${uaStr}"  -w "${show_url_httpcode}"
+	curl -# -o ${TGLISTP25}  ${W0CHP_hostFileURL}/TGList_P25.txt --user-agent "${uaStr}"   -w "${show_url_httpcode}"
+	curl -# -o ${TGLISTNXDN}  ${W0CHP_hostFileURL}/TGList_NXDN.txt --user-agent "${uaStr}"   -w "${show_url_httpcode}"
+	curl -# -o ${TGLISTYSF}  ${W0CHP_hostFileURL}/TGList_YSF.txt --user-agent "${uaStr}"   -w "${show_url_httpcode}"
+	curl -# -o ${COUNTRIES}  ${W0CHP_hostFileURL}/country.csv --user-agent "${uaStr}"   -w "${show_url_httpcode}"
+	curl -# -o ${BMTGNAMES}  ${W0CHP_hostFileURL}/BM_TGs.json --user-agent "${uaStr}"   -w "${show_url_httpcode}"
     #BM TG List for live caller and nextion screens:
     cp ${BMTGNAMES} ${GROUPSTXT}
     
@@ -148,16 +154,16 @@ else
         fi
     else
     	echo "Upate All including DMRids, Nextion DMRIds ..."
-	    sudo curl -# -o ${DMRIDFILE} ${HostURL}/DMRIds.dat --user-agent "Pi-Star_${pistarCurVersion}"
+	    sudo curl -# -o ${DMRIDFILE} ${HostURL}/DMRIds.dat --user-agent "Pi-Star_${pistarCurVersion}"    -w "${show_url_httpcode}"
 	    
 	    echo "Update NextionDriver DMRIds from ${NextionHostURL} ... " 
 		cd /tmp; sudo rm -f user.*;  
-		sudo curl -# -o /tmp/user.csv  ${NextionHostURL}/user.csv --user-agent "Pi-Star_${pistarCurVersion}"
+		sudo curl -# -o /tmp/user.csv  ${NextionHostURL}/user.csv --user-agent "Pi-Star_${pistarCurVersion}"    -w "${show_url_httpcode}"
 		mv /tmp/user.csv /usr/local/etc/stripped.csv
 		stat /usr/local/etc/stripped.csv
 
         echo "Update NXDN.csv ... "
-		curl -# -o ${NXDNIDFILE}  ${W0CHP_hostFileURL}/NXDN.csv --user-agent "${uaStr}" 
+		curl -# -o ${NXDNIDFILE}  ${W0CHP_hostFileURL}/NXDN.csv --user-agent "${uaStr}"     -w "${show_url_httpcode}"
 		stat ${NXDNIDFILE} 
     fi
 
